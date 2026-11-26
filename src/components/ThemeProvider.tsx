@@ -192,7 +192,13 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({
+  showLabelAlways = false,
+  className = "",
+}: {
+  showLabelAlways?: boolean;
+  className?: string;
+} = {}) {
   const { theme, isTransitioning, toggleTheme } = useTheme();
   const isDark = theme === "dark";
 
@@ -203,7 +209,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      className="neu-btn inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-medium text-ink sm:h-9 sm:min-h-[36px] sm:min-w-0 sm:px-2.5"
+      className={`neu-btn inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-medium text-ink sm:h-9 sm:min-h-[36px] sm:min-w-0 sm:px-2.5 ${className}`}
     >
       <span className="relative flex h-4 w-4 items-center justify-center overflow-hidden">
         <Sun
@@ -221,7 +227,9 @@ export function ThemeToggle() {
           }`}
         />
       </span>
-      <span className="hidden sm:inline">{isDark ? "Light" : "Dark"}</span>
+      <span className={showLabelAlways ? "inline" : "hidden sm:inline"}>
+        {isDark ? "Light Mode" : "Dark Mode"}
+      </span>
     </button>
   );
 }

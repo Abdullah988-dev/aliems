@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Boxes,
   Database,
   LayoutDashboard,
   LogOut,
+  Menu,
   ReceiptText,
   ScanLine,
   Settings,
+  X,
 } from "lucide-react";
 import { BillScannerSuppliersPanel } from "@/components/BillScannerSuppliersPanel";
 import { InventoryManager } from "@/components/InventoryManager";
@@ -35,6 +37,7 @@ export function DashboardShell({
   onLoggedOut,
 }: DashboardShellProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   const {
@@ -60,12 +63,63 @@ export function DashboardShell({
       ? tenant.customBusinessLabel
       : preset.label;
 
+  const navTabs = useMemo(
+    () =>
+      [
+        {
+          id: "overview" as const,
+          label: "Overview & Dispatch",
+          icon: LayoutDashboard,
+        },
+        {
+          id: "inventory" as const,
+          label: `Inventory & Categories (${items.length})`,
+          icon: Boxes,
+        },
+        {
+          id: "ledger" as const,
+          label: "Ledger & Weekly Settlements",
+          icon: ReceiptText,
+        },
+        {
+          id: "bills" as const,
+          label: `AI Bill Scanner & Suppliers (${suppliers.length})`,
+          icon: ScanLine,
+        },
+        {
+          id: "workspace" as const,
+          label: "Workspace & Isolation",
+          icon: Settings,
+        },
+      ] as const,
+    [items.length, suppliers.length],
+  );
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
   async function handleLogout() {
     setLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
       setLoggingOut(false);
+      setMobileMenuOpen(false);
       onLoggedOut();
     }
   }
@@ -74,18 +128,67 @@ export function DashboardShell({
     <div className="min-h-screen overflow-x-clip text-ink">
       {/* Top Operational Glassmorphic Header */}
       <header className="glass-header sticky top-0 z-30">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2.5 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-3.5">
-          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+        {/* Mobile Minimal Header (< 768px) */}
+        <div className="flex items-center justify-between gap-2 px-3 py-2.5 md:hidden">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="neu-btn-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-semibold tracking-tight">
+              AE
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold tracking-tight text-ink">
+                AliEMS
+              </div>
+              <div className="truncate text-[11px] text-ink-muted">
+                {tenant.businessName}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="glass-subpanel inline-flex min-h-[36px] items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px]">
+              {storageMode === "mongodb" ? (
+                <>
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+                  <span className="whitespace-nowrap font-semibold text-ink">
+                    Live DB
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Database className="h-3 w-3 shrink-0 text-accent" />
+                  <span className="whitespace-nowrap font-medium text-ink">
+                    Fallback
+                  </span>
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-drawer"
+              className="neu-btn inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-ink"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop / Laptop Top Header (>= 768px — Unchanged) */}
+        <div className="mx-auto hidden max-w-7xl items-center justify-between gap-3 px-6 py-3.5 md:flex">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="neu-btn-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-semibold tracking-tight">
               AE
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 sm:gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-semibold tracking-tight text-ink">
                   AliEMS
                 </span>
-                <span className="hidden text-xs text-ink-muted sm:inline">|</span>
-                <h1 className="truncate text-xs font-medium text-ink-secondary sm:text-sm">
+                <span className="text-xs text-ink-muted">|</span>
+                <h1 className="truncate text-sm font-medium text-ink-secondary">
                   Ali Electronic Management System
                 </h1>
               </div>
@@ -95,15 +198,13 @@ export function DashboardShell({
                 </span>
                 <span>·</span>
                 <span className="truncate">{verticalTitle}</span>
-                <span className="hidden md:inline">·</span>
-                <span className="hidden text-[11px] md:inline">
-                  {preset.dashboardFocus}
-                </span>
+                <span>·</span>
+                <span className="text-[11px]">{preset.dashboardFocus}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <div
               className="glass-subpanel hidden items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] lg:flex"
               title={`Tenant Partition: ${tenant.id}`}
@@ -132,7 +233,7 @@ export function DashboardShell({
               )}
             </div>
 
-            <div className="hidden text-right text-xs md:block">
+            <div className="text-right text-xs">
               <div className="font-medium text-ink">{user.fullName}</div>
               <div className="text-[11px] text-ink-muted">{user.email}</div>
             </div>
@@ -144,7 +245,7 @@ export function DashboardShell({
                 type="button"
                 disabled={loggingOut}
                 onClick={handleLogout}
-                className="neu-btn inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-medium text-ink sm:h-9 sm:min-h-[36px]"
+                className="neu-btn inline-flex h-9 min-h-[36px] items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-medium text-ink"
               >
                 <LogOut className="h-3.5 w-3.5 shrink-0 text-ink-secondary" />
                 <span className="whitespace-nowrap">Sign Out</span>
@@ -153,40 +254,9 @@ export function DashboardShell({
           </div>
         </div>
 
-        {/* Responsive Scrollable Navigation Tabs */}
-        <div
-          className="no-scrollbar mx-auto flex max-w-7xl snap-x touch-pan-x gap-2 overflow-x-auto scroll-smooth px-3 pb-3 pt-1 sm:px-6"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {(
-            [
-              {
-                id: "overview",
-                label: "Overview & Dispatch",
-                icon: LayoutDashboard,
-              },
-              {
-                id: "inventory",
-                label: `Inventory & Categories (${items.length})`,
-                icon: Boxes,
-              },
-              {
-                id: "ledger",
-                label: "Ledger & Weekly Settlements",
-                icon: ReceiptText,
-              },
-              {
-                id: "bills",
-                label: `AI Bill Scanner & Suppliers (${suppliers.length})`,
-                icon: ScanLine,
-              },
-              {
-                id: "workspace",
-                label: "Workspace & Isolation",
-                icon: Settings,
-              },
-            ] as const
-          ).map((tab) => {
+        {/* Desktop / Laptop Navigation Tabs (>= 768px — Hidden on Mobile) */}
+        <div className="no-scrollbar mx-auto hidden max-w-7xl gap-2 overflow-x-auto px-6 pb-3 pt-1 md:flex">
+          {navTabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
             return (
@@ -194,7 +264,7 @@ export function DashboardShell({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`tabular-nums inline-flex min-h-[44px] shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-xs font-medium transition-all sm:h-9 sm:min-h-[36px] ${
+                className={`tabular-nums inline-flex h-9 min-h-[36px] shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-xs font-medium transition-all ${
                   active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
                 }`}
               >
@@ -207,6 +277,120 @@ export function DashboardShell({
           })}
         </div>
       </header>
+
+      {/* Mobile Slide-Out Sidebar Backdrop Overlay (< 768px) */}
+      <div
+        aria-hidden={!mobileMenuOpen}
+        onClick={() => setMobileMenuOpen(false)}
+        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          mobileMenuOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      {/* Mobile Slide-Out Sidebar Drawer (< 768px) */}
+      <aside
+        id="mobile-nav-drawer"
+        aria-label="Mobile Navigation"
+        aria-hidden={!mobileMenuOpen}
+        className={`glass-drawer fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82vw] flex-col transition-transform duration-300 ease-out md:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className="glass-divider-b flex items-center justify-between gap-2 px-4 py-3.5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="neu-btn-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-semibold tracking-tight">
+              AE
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold text-ink">
+                AliEMS
+              </div>
+              <div className="truncate text-[11px] text-ink-muted">
+                {tenant.businessName}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close navigation menu"
+            className="neu-btn flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl text-ink-secondary"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Drawer Operator Summary */}
+        <div className="px-4 pt-3.5">
+          <div className="glass-subpanel rounded-xl px-3 py-2.5 text-xs">
+            <div className="truncate font-semibold text-ink">{user.fullName}</div>
+            <div className="truncate text-[11px] text-ink-muted">{user.email}</div>
+            <div
+              className="mt-1.5 flex items-center justify-between gap-2 pt-1.5 text-[11px]"
+              style={{ borderTop: "1px solid var(--glass-divider)" }}
+            >
+              <span className="text-ink-muted">{verticalTitle}</span>
+              <span className="inline-flex items-center gap-1 font-medium text-ink">
+                {storageMode === "mongodb" ? (
+                  <>
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    Live DB
+                  </>
+                ) : (
+                  "Fallback"
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* All Main Navigation Links */}
+        <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+          {navTabs.map((tab) => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setMobileMenuOpen(false);
+                }}
+                className={`tabular-nums flex min-h-[46px] w-full items-center gap-3 rounded-xl px-3.5 text-left text-sm font-medium transition-all ${
+                  active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-accent"}`}
+                />
+                <span className="truncate">{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Drawer Footer: Theme Toggle + Sign Out */}
+        <div
+          className="space-y-2.5 p-4"
+          style={{ borderTop: "1px solid var(--glass-divider)" }}
+        >
+          <ThemeToggle showLabelAlways className="w-full justify-center" />
+          <button
+            type="button"
+            disabled={loggingOut}
+            onClick={handleLogout}
+            className="neu-btn flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium text-danger"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
+          </button>
+        </div>
+      </aside>
 
       <main className="mx-auto max-w-7xl space-y-5 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6">
         {/* Core Dual-Balance KPI Strip */}
