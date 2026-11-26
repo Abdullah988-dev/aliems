@@ -5,6 +5,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Database,
+  FileDown,
   FileText,
   Plus,
   ScanLine,
@@ -12,6 +13,7 @@ import {
   Upload,
   Wallet,
 } from "lucide-react";
+import { CashFlowPdfModal } from "@/components/CashFlowPdfModal";
 import {
   buildSampleScannedBill,
   computeBillItemsTotal,
@@ -62,6 +64,10 @@ export function BillScannerSuppliersPanel({
   const [supNotes, setSupNotes] = useState("");
   const [savingSup, setSavingSup] = useState(false);
   const [supError, setSupError] = useState<string | null>(null);
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfInitialSupplierId, setPdfInitialSupplierId] = useState<
+    string | undefined
+  >(undefined);
 
   useEffect(() => {
     return () => {
@@ -341,6 +347,14 @@ export function BillScannerSuppliersPanel({
 
   return (
     <div className="space-y-5 sm:space-y-6">
+      <CashFlowPdfModal
+        open={pdfModalOpen}
+        currency={currency}
+        suppliers={suppliers}
+        initialSupplierId={pdfInitialSupplierId}
+        onClose={() => setPdfModalOpen(false)}
+      />
+
       {/* Live Persistence Summary Strip */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="glass-card min-w-0 rounded-2xl p-4 sm:p-5">
@@ -833,13 +847,26 @@ export function BillScannerSuppliersPanel({
 
       {/* Persisted Supplier Accounts & Old Balances */}
       <div className="glass-card min-w-0 overflow-hidden rounded-2xl">
-        <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
-          <h3 className="text-sm font-semibold text-ink">
-            Supplier Accounts & Running Balances ({suppliers.length})
-          </h3>
-          <span className="text-[11px] text-ink-muted">
-            Click Edit to update a supplier&apos;s opening or old balance
-          </span>
+        <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2.5 px-4 py-3.5 sm:px-5">
+          <div>
+            <h3 className="text-sm font-semibold text-ink">
+              Supplier Accounts & Running Balances ({suppliers.length})
+            </h3>
+            <span className="text-[11px] text-ink-muted">
+              Click Edit to update a supplier&apos;s opening balance or export A4 Cash Flow PDF
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPdfInitialSupplierId(suppliers[0]?.id || "BLANK_MANUAL");
+              setPdfModalOpen(true);
+            }}
+            className="neu-btn-primary inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold sm:h-9 sm:min-h-[36px] sm:w-auto"
+          >
+            <FileDown className="h-4 w-4 shrink-0" />
+            <span>Generate Cash Flow PDF</span>
+          </button>
         </div>
         <div className="table-scroll-container">
           <table className="w-full border-collapse text-left text-xs">
@@ -891,19 +918,32 @@ export function BillScannerSuppliersPanel({
                       {formatCurrency(sup.runningBalance, currency)}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSupName(sup.supplierName);
-                          setSupOldBalance(String(sup.oldBalance));
-                          setSupBillAmount(String(sup.lastBillAmount));
-                          if (sup.billDate) setSupDate(sup.billDate);
-                          setSupNotes(sup.notes || "");
-                        }}
-                        className="neu-btn inline-flex min-h-[44px] items-center rounded-xl px-3.5 text-xs font-medium text-accent sm:min-h-[30px] sm:rounded-lg sm:px-2.5 sm:py-1 sm:text-[11px]"
-                      >
-                        Edit
-                      </button>
+                      <div className="inline-flex items-center gap-2 sm:gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPdfInitialSupplierId(sup.id);
+                            setPdfModalOpen(true);
+                          }}
+                          className="neu-btn inline-flex min-h-[44px] items-center gap-1 rounded-xl px-3 text-xs font-medium text-ink sm:min-h-[30px] sm:rounded-lg sm:px-2.5 sm:py-1 sm:text-[11px]"
+                        >
+                          <FileDown className="h-3.5 w-3.5 shrink-0 text-accent sm:h-3 sm:w-3" />
+                          PDF
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSupName(sup.supplierName);
+                            setSupOldBalance(String(sup.oldBalance));
+                            setSupBillAmount(String(sup.lastBillAmount));
+                            if (sup.billDate) setSupDate(sup.billDate);
+                            setSupNotes(sup.notes || "");
+                          }}
+                          className="neu-btn inline-flex min-h-[44px] items-center rounded-xl px-3.5 text-xs font-medium text-accent sm:min-h-[30px] sm:rounded-lg sm:px-2.5 sm:py-1 sm:text-[11px]"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

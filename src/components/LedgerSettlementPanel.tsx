@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, Landmark, Wallet } from "lucide-react";
+import { CheckCircle2, FileDown, Landmark, Wallet } from "lucide-react";
+import { CashFlowPdfModal } from "@/components/CashFlowPdfModal";
 import { getCurrentWeekLabel } from "@/lib/accounting";
 import { formatCurrency, formatDateTime, formatSignedCurrency } from "@/lib/format";
 import type {
@@ -44,6 +45,10 @@ export function LedgerSettlementPanel({
   onOpenSuppliers,
 }: LedgerSettlementPanelProps) {
   const [filterType, setFilterType] = useState<LedgerEntryType | "ALL">("ALL");
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfInitialSupplierId, setPdfInitialSupplierId] = useState<
+    string | undefined
+  >(undefined);
 
   const itemBrandById = useMemo(
     () => new Map(items.map((it) => [it.id, it.brand])),
@@ -111,6 +116,37 @@ export function LedgerSettlementPanel({
 
   return (
     <div className="space-y-5 sm:space-y-6">
+      <CashFlowPdfModal
+        open={pdfModalOpen}
+        currency={currency}
+        suppliers={suppliers}
+        initialSupplierId={pdfInitialSupplierId}
+        onClose={() => setPdfModalOpen(false)}
+      />
+
+      {/* A4 Cash Flow Export Action Banner */}
+      <div className="glass-card-accent flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-ink">
+            AE Weekly Cash Flow Ledger (A4 Print &amp; PDF)
+          </div>
+          <p className="mt-0.5 text-xs text-ink-secondary">
+            Export single-color Navy A4 supplier statements with continuous carry-forward opening balances and handwritten blank rows.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setPdfInitialSupplierId(suppliers[0]?.id || "BLANK_MANUAL");
+            setPdfModalOpen(true);
+          }}
+          className="neu-btn-primary inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold sm:h-10 sm:min-h-[40px] sm:w-auto"
+        >
+          <FileDown className="h-4 w-4 shrink-0" />
+          <span>Generate Cash Flow PDF</span>
+        </button>
+      </div>
+
       {/* Top Row: Weekly Settlement Recorder + Settlement History */}
       <div className="grid gap-5 sm:gap-6 lg:grid-cols-12">
         <div className="glass-card min-w-0 overflow-hidden rounded-2xl lg:col-span-5">
@@ -494,15 +530,28 @@ export function LedgerSettlementPanel({
                 Supplier Old Balance & Payable Summary ({suppliers.length})
               </h2>
             </div>
-            {onOpenSuppliers && (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <button
                 type="button"
-                onClick={onOpenSuppliers}
-                className="neu-btn inline-flex min-h-[44px] items-center rounded-xl px-3.5 text-xs font-medium text-accent sm:min-h-[32px] sm:rounded-lg sm:px-3 sm:py-1 sm:text-[11px]"
+                onClick={() => {
+                  setPdfInitialSupplierId(suppliers[0]?.id || "BLANK_MANUAL");
+                  setPdfModalOpen(true);
+                }}
+                className="neu-btn-primary inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-3.5 text-xs font-medium sm:min-h-[32px] sm:rounded-lg sm:px-3 sm:py-1 sm:text-[11px]"
               >
-                Manage Supplier Balances
+                <FileDown className="h-3.5 w-3.5 shrink-0" />
+                <span>Generate Cash Flow PDF</span>
               </button>
-            )}
+              {onOpenSuppliers && (
+                <button
+                  type="button"
+                  onClick={onOpenSuppliers}
+                  className="neu-btn inline-flex min-h-[44px] items-center justify-center rounded-xl px-3.5 text-xs font-medium text-accent sm:min-h-[32px] sm:rounded-lg sm:px-3 sm:py-1 sm:text-[11px]"
+                >
+                  Manage Supplier Balances
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="table-scroll-container">

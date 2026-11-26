@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { parseOptionalPrice } from "@/lib/accounting";
 import { hashPassword, signSessionToken, verifyPassword, verifySessionToken } from "@/lib/auth";
 import { buildSampleScannedBill, computeUpdatedSupplierBalance } from "@/lib/bill-helpers";
+import { buildWeeklyCashFlowReport } from "@/lib/cashflow-ledger";
 import { MemoryJsonAdapter } from "@/lib/db/memory-json-adapter";
+import { buildWeeklyCashFlowPdfDoc } from "@/lib/pdf/weekly-cashflow-ledger";
 
 describe("AliEMS Multi-Tenant Isolation, Onboarding, CRUD & Accounting", () => {
   it("provisions dynamic categories based on business type and isolates tenant partitions", async () => {
@@ -424,5 +426,175 @@ describe("AliEMS Multi-Tenant Isolation, Onboarding, CRUD & Accounting", () => {
     expect(ovB!.items).toHaveLength(0);
     expect(ovB!.suppliers).toHaveLength(0);
     expect(ovB!.metrics.totalSupplierPayable).toBe(0);
+  });
+
+  it("computes continuous carry-forward opening balances and builds multi-page A4 Weekly Cash Flow PDFs", async () => {
+    const db = new MemoryJsonAdapter();
+    await db.ensureSeeded();
+
+    const reg = await db.registerTenant({
+      businessName: "Ali Electronic",
+      businessType: "appliances",
+      currency: "PKR",
+      fullName: "Ali Owner",
+      email: "owner@alielectronic.test",
+      passwordHash: hashPassword("pass1234"),
+      includeStarterStock: false,
+    });
+
+    const ov0 = await db.getTenantOverview(reg.tenant.id, reg.user.id);
+    const catId = ov0!.categories[0].id;
+
+    // Seed an item + sale so settlements can also be recorded
+    const stockItem = await db.createInventoryItem({
+      tenantId: reg.tenant.id,
+      userId: reg.user.id,
+      categoryId: catId,
+      sku: "AE-REF-1",
+      name: "Inverter Fridge",
+      brand: "Dawlance",
+      unitCostPrice: 80000,
+      targetSalePrice: 120000,
+      qtyOnHand: 3,
+      reorderLevel: 1,
+    });
+
+    await db.recordSaleDispatch({
+      tenantId: reg.tenant.id,
+      userId: reg.user.id,
+      itemId: stockItem.item.id,
+      quantity: 2,
+      unitSalePrice: 120000,
+    });
+
+    // Week 1 bill (2026-11-18): Initial old balance 150,000 + Bill 45,000 = 195,000
+    const bill1 = await db.commitScannedBill({
+      tenantId: reg.tenant.id,
+      userId: reg.user.id,
+      supplierName: "Umar Farooq Traders",
+      billDate: "2026-11-18",
+      oldBalance: 150000,
+      items: [
+        {
+          itemName: "LED Panel 24W",
+          skuOrModel: "AE-LED-24",
+          category: "Lighting",
+          quantity: 15,
+          unitCost: 3000,
+        },
+      ],
+    });
+
+    // Week 2 bill (2026-11-24): Bill 25,000
+    await db.commitScannedBill({
+      tenantId: reg.tenant.id,
+      userId: reg.user.id,
+      supplierName: "Umar Farooq Traders",
+      billDate: "2026-11-24",
+      oldBalance: 195000,
+      items: [
+        {
+          itemName: "Stabilizer 3000VA",
+          skuOrModel: "AE-STB-3K",
+          category: "Power",
+          quantity: 5,
+          unitCost: 5000,
+        },
+      ],
+    });
+
+    // Payment in Week 2 (2026-11-25) via settlement matching supplier recipientName
+    const stl = await db.recordWeeklySettlement({
+      tenantId: reg.tenant.id,
+      userId: reg.user.id,
+      settledAmount: 30000,
+      recipientName: "Umar Farooq Traders",
+      settlementMethod: "bank_transfer",
+      notes: "Cash / bank transfer to Umar Farooq Traders",
+    });
+
+    const ov1 = await db.getTenantOverview(reg.tenant.id, reg.user.id);
+    const paymentDate = stl.settlement.createdAt.slice(0, 10);
+
+    // Report 1: Week 1 (2026-11-16..2026-11-22) -> Opening Balance = 150,000, Bill1 = 45,000
+    const reportW1 = buildWeeklyCashFlowReport({
+      tenant: ov1!.tenant,
+      suppliers: ov1!.suppliers,
+      items: ov1!.items,
+      ledger: ov1!.ledger,
+      settlements: ov1!.settlements,
+      supplierSelector: bill1.supplier!.id,
+      periodType: "weekly",
+      startDate: "2026-11-16",
+      endDate: "2026-11-22",
+      blankRows: 8,
+    });
+
+    expect(reportW1.openingBalance).toBe(150000);
+    expect(reportW1.rows).toHaveLength(1);
+    expect(reportW1.rows[0].thisWeekAmount).toBe(45000);
+    expect(reportW1.rows[0].totalAmount).toBe(195000);
+    expect(reportW1.rows[0].remainingBalance).toBe(195000);
+    expect(reportW1.totalAmount).toBe(195000);
+    expect(reportW1.totalAmountPaid).toBe(0);
+    expect(reportW1.finalRemainingBalance).toBe(195000);
+
+    // Report 2: Custom period starting 2026-11-23 through paymentDate -> carries forward 195,000!
+    const reportW2 = buildWeeklyCashFlowReport({
+      tenant: ov1!.tenant,
+      suppliers: ov1!.suppliers,
+      items: ov1!.items,
+      ledger: ov1!.ledger,
+      settlements: ov1!.settlements,
+      supplierSelector: bill1.supplier!.id,
+      periodType: "custom",
+      startDate: "2026-11-23",
+      endDate: paymentDate >= "2026-11-24" ? paymentDate : "2026-11-30",
+      blankRows: 24, // Force multi-page continuation
+    });
+
+    expect(reportW2.openingBalance).toBe(195000);
+    expect(reportW2.rows).toHaveLength(2);
+    expect(reportW2.rows[0].thisWeekAmount).toBe(25000);
+    expect(reportW2.rows[0].totalAmount).toBe(220000);
+    expect(reportW2.rows[0].remainingBalance).toBe(220000);
+    expect(reportW2.rows[1].amountPaid).toBe(30000);
+    expect(reportW2.rows[1].totalAmount).toBe(220000);
+    expect(reportW2.rows[1].remainingBalance).toBe(190000);
+    expect(reportW2.totalAmount).toBe(220000);
+    expect(reportW2.totalAmountPaid).toBe(30000);
+    expect(reportW2.finalRemainingBalance).toBe(190000);
+
+    // Build A4 vector PDF & verify multi-page layout and strict A4 size
+    const pdfDoc = buildWeeklyCashFlowPdfDoc(reportW2);
+    expect(pdfDoc.getNumberOfPages()).toBeGreaterThanOrEqual(2);
+    expect(Math.round(pdfDoc.internal.pageSize.getWidth())).toBe(210);
+    expect(Math.round(pdfDoc.internal.pageSize.getHeight())).toBe(297);
+
+    const rawPdf = pdfDoc.output("arraybuffer");
+    const pdfText = Buffer.from(rawPdf).toString("latin1");
+    expect(pdfText).toContain("WEEKLY CASH FLOW LEDGER");
+    expect(pdfText).toContain("WEEKLY SUPPLIER CASH FLOW");
+    expect(pdfText).toContain("UMAR FAROOQ TRADERS");
+    expect(pdfText).toContain("FINAL REMAINING BALANCE");
+    expect(pdfText).toContain("Page 1 of");
+
+    // Report 3: Blank Manual Sheet mode
+    const blankReport = buildWeeklyCashFlowReport({
+      tenant: ov1!.tenant,
+      suppliers: ov1!.suppliers,
+      items: ov1!.items,
+      ledger: ov1!.ledger,
+      settlements: ov1!.settlements,
+      supplierSelector: "BLANK_MANUAL",
+      periodType: "weekly",
+      startDate: "2026-11-23",
+      blankRows: 10,
+    });
+    expect(blankReport.isBlankManual).toBe(true);
+    expect(blankReport.rows).toHaveLength(0);
+    expect(blankReport.blankRows).toBe(10);
+    const blankPdf = buildWeeklyCashFlowPdfDoc(blankReport);
+    expect(blankPdf.getNumberOfPages()).toBe(1);
   });
 });

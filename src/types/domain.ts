@@ -111,8 +111,46 @@ export interface LedgerEntry {
   receivableBalanceAfter: number;
   reference: string;
   notes: string;
+  /** Optional invoice/bill date (YYYY-MM-DD) for supplier bills and balance updates. */
+  billDate?: string;
+  /** Optional batch id grouping items from a single bill commit. */
+  billBatchId?: string;
   createdByUserId: string;
   createdAt: string;
+}
+
+export type CashFlowPeriodType = "weekly" | "monthly" | "custom";
+
+export interface CashFlowLedgerRow {
+  date: string;
+  thisWeekAmount: number;
+  amountPaid: number;
+  totalAmount: number;
+  remainingBalance: number;
+  description: string;
+  sourceType: "bill" | "payment";
+  reference?: string;
+}
+
+export interface WeeklyCashFlowReportData {
+  tenantId: string;
+  shopName: string;
+  currency: string;
+  supplierId: string | "BLANK_MANUAL";
+  supplierName: string;
+  isBlankManual: boolean;
+  periodType: CashFlowPeriodType;
+  startDate: string;
+  endDate: string;
+  periodLabel: string;
+  printDate: string;
+  openingBalance: number;
+  totalWeekBills: number;
+  totalAmount: number;
+  totalAmountPaid: number;
+  finalRemainingBalance: number;
+  blankRows: number;
+  rows: CashFlowLedgerRow[];
 }
 
 export interface WeeklySettlement {

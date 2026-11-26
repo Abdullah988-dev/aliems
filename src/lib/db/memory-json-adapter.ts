@@ -1069,6 +1069,7 @@ export class MemoryJsonAdapter implements DatabaseAdapter {
         notes:
           input.notes?.trim() ||
           `Supplier balance updated (Old: ${oldBalance} + Bill: ${currentBillAmount} = ${runningBalance})`,
+        billDate,
         createdByUserId: input.userId,
         createdAt: nowIso,
       };
@@ -1091,6 +1092,7 @@ export class MemoryJsonAdapter implements DatabaseAdapter {
       const supplierName = input.supplierName?.trim() || "";
       const billDate = input.billDate?.trim() || new Date().toISOString().slice(0, 10);
       const nowIso = new Date().toISOString();
+      const billBatchId = newId("bill");
 
       let runningInv = computeInventoryAssetValue(
         db.items.filter((i) => i.tenantId === input.tenantId && !i.isDeleted),
@@ -1159,6 +1161,8 @@ export class MemoryJsonAdapter implements DatabaseAdapter {
             notes: supplierName
               ? `Bill stock-in (+${qty} units) from ${supplierName}`
               : `Bill stock-in (+${qty} units @ ${unitCost})`,
+            billDate,
+            billBatchId,
             createdByUserId: input.userId,
             createdAt: nowIso,
           });
@@ -1230,6 +1234,8 @@ export class MemoryJsonAdapter implements DatabaseAdapter {
             notes: supplierName
               ? `New SKU from bill (${qty} units) · ${supplierName}`
               : `New SKU from bill (${qty} units)`,
+            billDate,
+            billBatchId,
             createdByUserId: input.userId,
             createdAt: nowIso,
           });
@@ -1286,6 +1292,8 @@ export class MemoryJsonAdapter implements DatabaseAdapter {
           receivableBalanceAfter: currentReceivable,
           reference: `BILL-${Date.now().toString().slice(-5)}`,
           notes: `Bill posted for ${supplierName} (Old: ${oldBalance} + Bill: ${billTotal} = Updated: ${runningBalance})`,
+          billDate,
+          billBatchId,
           createdByUserId: input.userId,
           createdAt: nowIso,
         });
