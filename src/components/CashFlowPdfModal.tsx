@@ -76,7 +76,7 @@ export function CashFlowPdfModal({
   );
   const [customToDate, setCustomToDate] = useState<string>(currentWeek.endDate);
 
-  const [blankRows, setBlankRows] = useState<string>("8");
+  const [blankRows, setBlankRows] = useState<string>("0");
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -428,7 +428,7 @@ export function CashFlowPdfModal({
             />
             <p className="mt-1 text-[11px] text-ink-muted">
               Selected Period: <strong className="text-ink">{resolvedPeriod.label}</strong>{" "}
-              · Opening Balance carries forward automatically from all prior bills &amp; payments.
+              · Opening Balance carries forward automatically; add blank rows only if filling extra lines by hand.
             </p>
           </div>
 

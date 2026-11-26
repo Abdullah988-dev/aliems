@@ -128,10 +128,10 @@ export function LedgerSettlementPanel({
       <div className="glass-card-accent flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="min-w-0">
           <div className="text-sm font-semibold text-ink">
-            AE Weekly Cash Flow Ledger (A4 Print &amp; PDF)
+            AE Receivable &amp; Cash Flow Ledger (A4 Print &amp; PDF)
           </div>
           <p className="mt-0.5 text-xs text-ink-secondary">
-            Export single-color Navy A4 supplier statements with continuous carry-forward opening balances and handwritten blank rows.
+            Export print-ready A4 statements with AE emblem, ALI ELECTRONIC watermark, continuous carry-forward balances, and signature lines.
           </p>
         </div>
         <button

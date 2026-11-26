@@ -573,11 +573,11 @@ describe("AliEMS Multi-Tenant Isolation, Onboarding, CRUD & Accounting", () => {
 
     const rawPdf = pdfDoc.output("arraybuffer");
     const pdfText = Buffer.from(rawPdf).toString("latin1");
-    expect(pdfText).toContain("WEEKLY CASH FLOW LEDGER");
-    expect(pdfText).toContain("WEEKLY SUPPLIER CASH FLOW");
-    expect(pdfText).toContain("UMAR FAROOQ TRADERS");
-    expect(pdfText).toContain("FINAL REMAINING BALANCE");
-    expect(pdfText).toContain("Page 1 of");
+    expect(pdfText).toContain("RECEIVABLE LEDGER");
+    expect(pdfText).toContain("ALI ELECTRONIC");
+    expect(pdfText).toContain("Umar Farooq Traders");
+    expect(pdfText).toContain("Current Balance: Rs 190,000");
+    expect(pdfText).toContain("Authorized Signature");
 
     // Report 3: Blank Manual Sheet mode
     const blankReport = buildWeeklyCashFlowReport({

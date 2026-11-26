@@ -18,6 +18,7 @@ interface InternalCashFlowEvent {
   amountPaid: number;
   description: string;
   sourceType: "bill" | "payment";
+  paymentMethod: string;
   reference?: string;
 }
 
@@ -321,8 +322,9 @@ export function buildWeeklyCashFlowReport(
       order: 0,
       thisWeekAmount: amount,
       amountPaid: 0,
-      description: `Bill Purchase: ${summaryParts.join(", ")}${extraCount}`,
+      description: `${summaryParts.join(", ")}${extraCount}`,
       sourceType: "bill",
+      paymentMethod: "N/A",
       reference: batch[0].reference,
     });
   }
@@ -332,7 +334,7 @@ export function buildWeeklyCashFlowReport(
     const amount = roundMoney(Math.max(0, entry.inventoryCostDelta));
     if (amount <= 0) continue;
     const itemDesc = entry.itemName
-      ? `Restock: ${entry.itemName}${entry.quantity ? ` (x${entry.quantity})` : ""}`
+      ? `${entry.itemName}${entry.quantity ? ` (x${entry.quantity})` : ""}`
       : entry.notes;
     events.push({
       date: toIsoDateOnly(entry.billDate || entry.createdAt),
@@ -342,6 +344,7 @@ export function buildWeeklyCashFlowReport(
       amountPaid: 0,
       description: itemDesc,
       sourceType: "bill",
+      paymentMethod: "N/A",
       reference: entry.reference,
     });
   }
@@ -385,6 +388,7 @@ export function buildWeeklyCashFlowReport(
           amountPaid: 0,
           description: cleanBillNotes(entry.notes, supplierName),
           sourceType: "bill",
+          paymentMethod: "N/A",
           reference: entry.reference,
         });
       }
@@ -403,6 +407,7 @@ export function buildWeeklyCashFlowReport(
         amountPaid: 0,
         description: matchedSupplier.notes?.trim() || "Supplier Bill Entry",
         sourceType: "bill",
+        paymentMethod: "N/A",
       });
     }
   }
@@ -415,16 +420,24 @@ export function buildWeeklyCashFlowReport(
   for (const stl of matchedSettlements) {
     const paid = roundMoney(stl.settledAmount);
     if (paid <= 0) continue;
-    const methodLabel = stl.settlementMethod.replace(/_/g, " ");
-    const descBase = stl.notes?.trim() || `Payment (${stl.weekLabel})`;
+    const methodBadge =
+      stl.settlementMethod === "cash_handover"
+        ? "CASH"
+        : stl.settlementMethod === "bank_transfer"
+          ? "ACCOUNT"
+          : stl.settlementMethod === "cheque"
+            ? "CHEQUE"
+            : "OTHER";
+    const descBase = stl.notes?.trim() || stl.weekLabel || "Payment";
     events.push({
       date: toIsoDateOnly(stl.createdAt),
       timestamp: stl.createdAt,
       order: 1,
       thisWeekAmount: 0,
       amountPaid: paid,
-      description: `${descBase} [${methodLabel}]`,
+      description: descBase,
       sourceType: "payment",
+      paymentMethod: methodBadge,
       reference: stl.reference,
     });
   }
@@ -471,6 +484,7 @@ export function buildWeeklyCashFlowReport(
       remainingBalance,
       description: ev.description,
       sourceType: ev.sourceType,
+      paymentMethod: ev.paymentMethod,
       reference: ev.reference,
     });
 

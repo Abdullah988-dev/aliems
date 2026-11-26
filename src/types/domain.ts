@@ -129,6 +129,7 @@ export interface CashFlowLedgerRow {
   remainingBalance: number;
   description: string;
   sourceType: "bill" | "payment";
+  paymentMethod?: string;
   reference?: string;
 }
 
