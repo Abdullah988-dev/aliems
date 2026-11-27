@@ -78,17 +78,17 @@ export function DashboardShell({
         },
         {
           id: "ledger" as const,
-          label: "Ledger & Weekly Settlements",
+          label: "Ledger & Settlements",
           icon: ReceiptText,
         },
         {
           id: "bills" as const,
-          label: `AI Bill Scanner & Suppliers (${suppliers.length})`,
+          label: `Bill Scanner & Suppliers (${suppliers.length})`,
           icon: ScanLine,
         },
         {
           id: "workspace" as const,
-          label: "Workspace & Isolation",
+          label: "Workspace",
           icon: Settings,
         },
       ] as const,
@@ -206,28 +206,28 @@ export function DashboardShell({
 
           <div className="flex flex-wrap items-center justify-end gap-2">
             <div
-              className="glass-subpanel hidden items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] lg:flex"
+              className="glass-subpanel hidden items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs lg:flex"
               title={`Tenant Partition: ${tenant.id}`}
             >
-              <span className="text-ink-muted">Partition:</span>
-              <span className="tabular-nums font-medium text-ink">
+              <span className="text-ink-muted">Partition</span>
+              <span className="font-mono-code tabular-nums font-medium text-ink">
                 {tenant.id}
               </span>
             </div>
 
-            <div className="glass-subpanel inline-flex min-h-[36px] items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px]">
+            <div className="glass-subpanel inline-flex min-h-[36px] items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs">
               {storageMode === "mongodb" ? (
                 <>
                   <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
-                  <span className="whitespace-nowrap font-semibold text-ink">
+                  <span className="whitespace-nowrap font-medium text-ink">
                     Live DB
                   </span>
                 </>
               ) : (
                 <>
-                  <Database className="h-3 w-3 shrink-0 text-accent" />
+                  <Database className="h-3.5 w-3.5 shrink-0 text-ink-muted" strokeWidth={1.75} />
                   <span className="whitespace-nowrap font-medium text-ink">
-                    Fallback Mode
+                    Fallback
                   </span>
                 </>
               )}
@@ -235,7 +235,7 @@ export function DashboardShell({
 
             <div className="text-right text-xs">
               <div className="font-medium text-ink">{user.fullName}</div>
-              <div className="text-[11px] text-ink-muted">{user.email}</div>
+              <div className="text-ink-muted">{user.email}</div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -245,10 +245,10 @@ export function DashboardShell({
                 type="button"
                 disabled={loggingOut}
                 onClick={handleLogout}
-                className="neu-btn inline-flex h-9 min-h-[36px] items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-medium text-ink"
+                className="neu-btn inline-flex h-9 min-h-[36px] items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-medium text-ink"
               >
-                <LogOut className="h-3.5 w-3.5 shrink-0 text-ink-secondary" />
-                <span className="whitespace-nowrap">Sign Out</span>
+                <LogOut className="h-3.5 w-3.5 shrink-0 text-ink-secondary" strokeWidth={1.75} />
+                <span className="whitespace-nowrap">Sign out</span>
               </button>
             </div>
           </div>
@@ -264,12 +264,13 @@ export function DashboardShell({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`tabular-nums inline-flex h-9 min-h-[36px] shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-xs font-medium transition-all ${
+                className={`tabular-nums inline-flex h-9 min-h-[36px] shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-xs font-medium transition-colors ${
                   active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
                 }`}
               >
                 <Icon
-                  className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-accent"}`}
+                  className={`h-4 w-4 shrink-0 ${active ? "text-current" : "text-ink-muted"}`}
+                  strokeWidth={1.75}
                 />
                 {tab.label}
               </button>
@@ -361,12 +362,13 @@ export function DashboardShell({
                   setActiveTab(tab.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`tabular-nums flex min-h-[46px] w-full items-center gap-3 rounded-xl px-3.5 text-left text-sm font-medium transition-all ${
+                className={`tabular-nums flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3.5 text-left text-sm font-medium transition-colors ${
                   active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
                 }`}
               >
                 <Icon
-                  className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-accent"}`}
+                  className={`h-4 w-4 shrink-0 ${active ? "text-current" : "text-ink-muted"}`}
+                  strokeWidth={1.75}
                 />
                 <span className="truncate">{tab.label}</span>
               </button>
@@ -377,79 +379,79 @@ export function DashboardShell({
         {/* Drawer Footer: Theme Toggle + Sign Out */}
         <div
           className="space-y-2.5 p-4"
-          style={{ borderTop: "1px solid var(--glass-divider)" }}
+          style={{ borderTop: "1px solid var(--hairline)" }}
         >
           <ThemeToggle showLabelAlways className="w-full justify-center" />
           <button
             type="button"
             disabled={loggingOut}
             onClick={handleLogout}
-            className="neu-btn flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium text-danger"
+            className="neu-btn flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium text-danger"
           >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
+            <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            <span>{loggingOut ? "Signing out..." : "Sign out"}</span>
           </button>
         </div>
       </aside>
 
-      <main className="mx-auto max-w-7xl space-y-5 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      <main className="mx-auto max-w-7xl space-y-6 px-3 py-4 sm:px-6 sm:py-6">
         {/* Core Dual-Balance KPI Strip */}
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
-          <div className="glass-card min-w-0 rounded-2xl p-4 sm:p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-              Inventory Asset Value (At Cost)
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="glass-card min-w-0 rounded-xl p-5">
+            <div className="text-xs font-medium text-ink-secondary">
+              Inventory asset value (at cost)
             </div>
-            <div className="tabular-nums mt-2 break-words text-lg font-semibold tracking-tight text-ink sm:text-xl xl:text-2xl">
+            <div className="tabular-nums mt-2 break-words text-xl font-semibold text-ink sm:text-2xl">
               {formatCurrency(metrics.inventoryAssetValue, tenant.currency)}
             </div>
-            <div className="mt-1.5 text-[11px] text-ink-muted">
-              Deducted strictly at cost price on sale
+            <div className="mt-1.5 text-xs text-ink-muted">
+              Deducted at unit cost on dispatch
             </div>
           </div>
 
-          <div className="glass-card-accent min-w-0 rounded-2xl p-4 sm:p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-accent">
-              Running Receivable Balance
+          <div className="glass-card-accent min-w-0 rounded-xl p-5">
+            <div className="text-xs font-medium text-ink-secondary">
+              Running receivable balance
             </div>
-            <div className="tabular-nums mt-2 break-words text-lg font-semibold tracking-tight text-accent sm:text-xl xl:text-2xl">
+            <div className="tabular-nums mt-2 break-words text-xl font-semibold text-accent sm:text-2xl">
               {formatCurrency(metrics.runningReceivableBalance, tenant.currency)}
             </div>
-            <div className="mt-1.5 text-[11px] text-ink-secondary">
-              Sale value routed for weekly settlement
+            <div className="mt-1.5 text-xs text-ink-muted">
+              Routed from sale dispatches
             </div>
           </div>
 
-          <div className="glass-card min-w-0 rounded-2xl p-4 sm:p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-              This Week Dispatched
+          <div className="glass-card min-w-0 rounded-xl p-5">
+            <div className="text-xs font-medium text-ink-secondary">
+              Dispatched this week
             </div>
-            <div className="tabular-nums mt-2 break-words text-lg font-semibold tracking-tight text-ink sm:text-xl xl:text-2xl">
+            <div className="tabular-nums mt-2 break-words text-xl font-semibold text-ink sm:text-2xl">
               {formatCurrency(metrics.dispatchedThisWeekSaleTotal, tenant.currency)}
             </div>
-            <div className="tabular-nums mt-1.5 text-[11px] text-ink-muted">
-              Cost: {formatCurrency(metrics.dispatchedThisWeekCostTotal, tenant.currency)}{" "}
-              · Settled: {formatCurrency(metrics.settledThisWeekTotal, tenant.currency)}
+            <div className="tabular-nums mt-1.5 text-xs text-ink-muted">
+              Cost {formatCurrency(metrics.dispatchedThisWeekCostTotal, tenant.currency)}{" "}
+              · Settled {formatCurrency(metrics.settledThisWeekTotal, tenant.currency)}
             </div>
           </div>
 
-          <div className="glass-card min-w-0 rounded-2xl p-4 sm:p-5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-              Stock & Supplier Status
+          <div className="glass-card min-w-0 rounded-xl p-5">
+            <div className="text-xs font-medium text-ink-secondary">
+              Stock status
             </div>
-            <div className="tabular-nums mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-lg font-semibold tracking-tight text-ink sm:text-xl xl:text-2xl">
+            <div className="tabular-nums mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xl font-semibold text-ink sm:text-2xl">
               <span>{metrics.totalUnitsInStock}</span>
               <span className="text-xs font-normal text-ink-muted">
-                units / {metrics.totalSkuCount} SKUs
+                units across {metrics.totalSkuCount} SKUs
               </span>
             </div>
-            <div className="mt-1.5 flex items-center gap-1.5 text-[11px]">
+            <div className="mt-1.5 flex items-center gap-1.5 text-xs">
               {metrics.lowStockCount > 0 ? (
-                <span className="tabular-nums inline-flex items-center gap-1 font-medium text-warning">
-                  <AlertTriangle className="h-3 w-3 shrink-0 text-warning-icon" />
-                  {metrics.lowStockCount} SKU(s) at or below reorder threshold
+                <span className="tabular-nums inline-flex items-center gap-1.5 font-medium text-warning">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning-icon" strokeWidth={1.75} />
+                  {metrics.lowStockCount} below reorder threshold
                 </span>
               ) : (
-                <span className="text-success">All SKUs above reorder threshold</span>
+                <span className="text-success">All SKUs above reorder level</span>
               )}
             </div>
           </div>
@@ -457,7 +459,7 @@ export function DashboardShell({
 
         {/* Tab Content */}
         {activeTab === "overview" && (
-          <div className="grid gap-5 sm:gap-6 lg:grid-cols-12">
+          <div className="grid gap-6 lg:grid-cols-12">
             <div className="min-w-0 lg:col-span-5">
               <SaleDispatchPanel
                 currency={tenant.currency}
@@ -469,19 +471,19 @@ export function DashboardShell({
               />
             </div>
 
-            <div className="min-w-0 space-y-5 sm:space-y-6 lg:col-span-7">
+            <div className="min-w-0 space-y-6 lg:col-span-7">
               {/* Provisioned Categories Quick Strip */}
-              <div className="glass-card min-w-0 rounded-2xl p-4 sm:p-5">
+              <div className="glass-card min-w-0 rounded-xl p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-secondary">
-                    Active Categories ({categories.length})
+                  <h2 className="text-sm font-medium text-ink">
+                    Active categories ({categories.length})
                   </h2>
                   <button
                     type="button"
                     onClick={() => setActiveTab("inventory")}
-                    className="neu-btn inline-flex min-h-[44px] items-center rounded-xl px-3 text-xs font-medium text-accent sm:min-h-[32px] sm:rounded-lg sm:px-2.5 sm:py-1"
+                    className="neu-btn inline-flex min-h-[44px] items-center rounded-lg px-3 text-xs font-medium text-ink-secondary sm:min-h-[32px] sm:px-2.5 sm:py-1"
                   >
-                    Open Full Inventory
+                    Open inventory
                   </button>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -490,7 +492,7 @@ export function DashboardShell({
                     return (
                       <span
                         key={cat.id}
-                        className="glass-subpanel rounded-lg px-2.5 py-1 text-xs text-ink"
+                        className="glass-subpanel rounded-md px-2.5 py-1 text-xs text-ink"
                       >
                         {cat.name}{" "}
                         <span className="tabular-nums text-ink-muted">({count})</span>
@@ -501,27 +503,27 @@ export function DashboardShell({
               </div>
 
               {/* Recent Ledger Activity */}
-              <div className="glass-card min-w-0 overflow-hidden rounded-2xl">
+              <div className="glass-card min-w-0 overflow-hidden rounded-xl">
                 <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
-                  <h2 className="text-sm font-semibold text-ink">
-                    Recent Ledger Postings
+                  <h2 className="text-sm font-medium text-ink">
+                    Recent ledger postings
                   </h2>
                   <button
                     type="button"
                     onClick={() => setActiveTab("ledger")}
-                    className="neu-btn inline-flex min-h-[44px] items-center rounded-xl px-3 text-xs font-medium text-accent sm:min-h-[32px] sm:rounded-lg sm:px-2.5 sm:py-1"
+                    className="neu-btn inline-flex min-h-[44px] items-center rounded-lg px-3 text-xs font-medium text-ink-secondary sm:min-h-[32px] sm:px-2.5 sm:py-1"
                   >
-                    Weekly Settlement & Full Ledger
+                    View full ledger
                   </button>
                 </div>
                 <div className="table-scroll-container">
                   <table className="w-full border-collapse text-left text-xs">
                     <thead>
-                      <tr className="glass-thead text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-                        <th className="whitespace-nowrap px-4 py-2.5">Ref & Time</th>
-                        <th className="min-w-[180px] px-4 py-2.5">Activity & Party</th>
+                      <tr className="glass-thead text-xs font-medium text-ink-secondary">
+                        <th className="whitespace-nowrap px-4 py-2.5">Ref &amp; time</th>
+                        <th className="min-w-[180px] px-4 py-2.5">Activity &amp; party</th>
                         <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                          Inv Cost
+                          Inv cost
                         </th>
                         <th className="whitespace-nowrap px-4 py-2.5 text-right">
                           Receivable
@@ -535,27 +537,27 @@ export function DashboardShell({
                           (entry.itemId ? itemBrandById.get(entry.itemId) : undefined);
                         return (
                           <tr key={entry.id} className="glass-row-hover">
-                            <td className="whitespace-nowrap px-4 py-2.5">
-                              <div className="tabular-nums font-medium text-ink">
+                            <td className="whitespace-nowrap px-4 py-3">
+                              <div className="font-mono-code tabular-nums font-medium text-ink">
                                 {entry.reference}
                               </div>
-                              <div className="tabular-nums text-[11px] text-ink-muted">
+                              <div className="tabular-nums text-xs text-ink-muted">
                                 {formatDateTime(entry.createdAt)}
                               </div>
                             </td>
-                            <td className="px-4 py-2.5">
+                            <td className="px-4 py-3">
                               <div className="font-medium text-ink">
                                 {entry.itemName
                                   ? `${entry.quantity ?? ""}x ${entry.itemName}${
                                       resolvedBrand ? ` (${resolvedBrand})` : ""
                                     }`
                                   : entry.type === "SUPPLIER_BALANCE"
-                                    ? "Supplier Balance"
-                                    : "Weekly Settlement"}
+                                    ? "Supplier balance"
+                                    : "Weekly settlement"}
                               </div>
-                              <div className="text-[11px] text-ink-muted">
+                              <div className="text-xs text-ink-muted">
                                 {entry.partyName ? (
-                                  <span className="font-medium text-accent">
+                                  <span className="font-medium text-ink-secondary">
                                     {entry.type === "WEEKLY_SETTLEMENT"
                                       ? `Recipient: ${entry.partyName}`
                                       : entry.type === "SUPPLIER_BALANCE" ||

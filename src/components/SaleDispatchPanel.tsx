@@ -168,76 +168,75 @@ export function SaleDispatchPanel({
   }
 
   return (
-    <div className="glass-card min-w-0 overflow-hidden rounded-2xl">
+    <div className="glass-card min-w-0 overflow-hidden rounded-xl">
       <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
         <div className="flex items-center gap-2">
-          <PackageCheck className="h-4 w-4 shrink-0 text-accent" />
-          <h2 className="text-sm font-semibold text-ink">
-            Stock Sale Dispatch
+          <PackageCheck className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
+          <h2 className="text-sm font-medium text-ink">
+            Stock sale dispatch
           </h2>
         </div>
-        <span className="glass-subpanel rounded-lg px-2.5 py-0.5 text-[11px] font-medium text-ink-secondary">
-          No Invoice / Ledger Only
+        <span className="text-xs text-ink-muted">
+          Cost deducted · Sale to receivable
         </span>
       </div>
 
       <div className="p-4 sm:p-5">
         {availableItems.length === 0 ? (
-          <div className="glass-subpanel rounded-xl p-6 text-center text-xs text-ink-secondary">
-            No sellable units currently in stock. Add or restock an item in the
-            Inventory & Categories tab to record a sale dispatch.
+          <div className="glass-subpanel rounded-lg p-6 text-center text-xs text-ink-secondary">
+            No sellable units in stock. Add or restock an item in Inventory to record a dispatch.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="alert-danger rounded-xl px-3.5 py-2.5 text-xs font-medium">
+              <div className="alert-danger rounded-lg px-3.5 py-2.5 text-xs font-medium">
                 {error}
               </div>
             )}
             {successMsg && (
-              <div className="alert-success flex items-start gap-2 rounded-xl px-3.5 py-2.5 text-xs font-medium">
-                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <div className="alert-success flex items-start gap-2 rounded-lg px-3.5 py-2.5 text-xs font-medium">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.75} />
                 <span>{successMsg}</span>
               </div>
             )}
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                Select Stock SKU
+                Stock SKU
               </label>
               <select
                 value={activeItem?.id || ""}
                 onChange={(e) => handleSelectItem(e.target.value)}
-                className="neu-input min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+                className="neu-input min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
               >
                 {availableItems.map((item) => {
                   const brandText = item.brand ? ` (${item.brand})` : "";
                   return (
                     <option key={item.id} value={item.id}>
                       [{item.sku}] {item.name}
-                      {brandText} — {item.qtyOnHand} in stock · Cost:{" "}
+                      {brandText} — {item.qtyOnHand} in stock · Cost{" "}
                       {formatCurrency(item.unitCostPrice, currency)}
                     </option>
                   );
                 })}
               </select>
               {activeItem && (
-                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted">
+                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
                   <span>
                     {categoryMap.get(activeItem.categoryId) || "General"}
                     {activeItem.brand ? ` · ${activeItem.brand}` : ""}
                   </span>
                   <span className="tabular-nums font-medium text-ink-secondary">
-                    Available: {activeItem.qtyOnHand} units
+                    {activeItem.qtyOnHand} available
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                  Quantity Dispatched
+                  Quantity
                 </label>
                 <input
                   type="number"
@@ -247,13 +246,13 @@ export function SaleDispatchPanel({
                   required
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="neu-input tabular-nums min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+                  className="neu-input tabular-nums min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
                 />
               </div>
 
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                  Unit Sale Price ({currency})
+                  Unit sale price ({currency})
                 </label>
                 <input
                   type="number"
@@ -263,89 +262,89 @@ export function SaleDispatchPanel({
                   value={unitSalePrice}
                   onChange={(e) => setUnitSalePrice(e.target.value)}
                   placeholder="Enter unit sale price"
-                  className="neu-input tabular-nums min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+                  className="neu-input tabular-nums min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                  Customer Name (Optional)
+                  Customer name (optional)
                 </label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g., Gulberg Electronics"
-                  className="neu-input min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+                  placeholder="e.g. Gulberg Electronics"
+                  className="neu-input min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
                 />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                  Dispatch Reference
+                  Reference (optional)
                 </label>
                 <input
                   type="text"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  placeholder="e.g., DSP-1045 (optional)"
-                  className="neu-input tabular-nums min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+                  placeholder="DSP-1045"
+                  className="neu-input font-mono-code tabular-nums min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
                 />
               </div>
             </div>
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                Dispatch Note (Optional)
+                Note (optional)
               </label>
               <input
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g., Counter pickup / van delivery"
-                className="neu-input min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+                placeholder="Counter pickup or van delivery"
+                className="neu-input min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
               />
             </div>
 
             {/* Dual-Ledger Accounting Preview */}
             {activeItem && (
-              <div className="glass-subpanel rounded-xl p-3.5">
+              <div className="glass-subpanel rounded-lg p-3.5">
                 <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-                    Accounting Split Preview
+                  <span className="text-xs font-medium text-ink-secondary">
+                    Accounting split preview
                   </span>
-                  <span className="text-[11px] text-ink-muted">
-                    Net profit deferred until settlement
+                  <span className="text-xs text-ink-muted">
+                    Profit deferred until settlement
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="glass-chip min-w-0 rounded-xl p-3">
-                    <div className="flex items-center justify-between text-[11px] text-ink-secondary">
-                      <span>Inventory Asset (Cost Only)</span>
-                      <ArrowDownRight className="h-3.5 w-3.5 shrink-0 text-danger" />
+                  <div className="glass-card min-w-0 rounded-md p-3">
+                    <div className="flex items-center justify-between text-xs text-ink-secondary">
+                      <span>Inventory asset (cost)</span>
+                      <ArrowDownRight className="h-3.5 w-3.5 shrink-0 text-danger" strokeWidth={1.75} />
                     </div>
                     <div className="tabular-nums mt-1 break-words text-sm font-semibold text-danger">
                       -{formatCurrency(costDeduction, currency)}
                     </div>
-                    <div className="tabular-nums mt-0.5 break-words text-[11px] text-ink-muted">
+                    <div className="tabular-nums mt-0.5 break-words text-xs text-ink-muted">
                       After:{" "}
                       {formatCurrency(currentInventoryValue - costDeduction, currency)}
                     </div>
                   </div>
 
-                  <div className="glass-chip min-w-0 rounded-xl p-3">
-                    <div className="flex items-center justify-between text-[11px] text-ink-secondary">
-                      <span>Running Receivable (Sale)</span>
-                      <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-accent" />
+                  <div className="glass-card min-w-0 rounded-md p-3">
+                    <div className="flex items-center justify-between text-xs text-ink-secondary">
+                      <span>Running receivable (sale)</span>
+                      <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.75} />
                     </div>
                     <div className="tabular-nums mt-1 break-words text-sm font-semibold text-accent">
                       {validSalePrice !== null
                         ? `+${formatCurrency(receivableAddition, currency)}`
                         : "Enter sale price"}
                     </div>
-                    <div className="tabular-nums mt-0.5 break-words text-[11px] text-ink-muted">
+                    <div className="tabular-nums mt-0.5 break-words text-xs text-ink-muted">
                       After:{" "}
                       {formatCurrency(
                         currentReceivableBalance + receivableAddition,
@@ -360,9 +359,9 @@ export function SaleDispatchPanel({
             <button
               type="submit"
               disabled={submitting || !activeItem || parsedQty <= 0 || validSalePrice === null}
-              className="neu-btn-primary min-h-[44px] w-full rounded-xl px-4 text-sm font-medium sm:h-10"
+              className="neu-btn-primary min-h-[44px] w-full rounded-lg px-4 text-sm font-medium sm:h-10"
             >
-              {submitting ? "Posting to Ledger..." : "Commit Sale Dispatch"}
+              {submitting ? "Posting to ledger..." : "Commit sale dispatch"}
             </button>
           </form>
         )}

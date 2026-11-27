@@ -914,15 +914,15 @@ export function InventoryManager({
       )}
 
       {/* Toolbar */}
-      <div className="glass-card flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="glass-card flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 sm:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-ink-muted" />
+          <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-ink-muted" strokeWidth={1.75} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter by SKU, model, or brand..."
-            className="neu-input min-h-[44px] w-full rounded-xl pl-9 pr-3 text-base sm:h-10 sm:min-h-[40px] sm:text-sm"
+            placeholder="Search SKU, model, or brand"
+            className="neu-input min-h-[44px] w-full rounded-lg pl-9 pr-3 text-base sm:h-10 sm:min-h-[40px] sm:text-sm"
           />
         </div>
 
@@ -930,18 +930,18 @@ export function InventoryManager({
           <button
             type="button"
             onClick={() => setShowCategoryForm((v) => !v)}
-            className="neu-btn inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl px-3.5 text-xs font-medium text-ink sm:h-10 sm:min-h-[40px] sm:w-auto"
+            className="neu-btn inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-3.5 text-xs font-medium text-ink sm:h-10 sm:min-h-[40px] sm:w-auto"
           >
-            <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-ink-secondary" />
-            Manage Categories ({categories.length})
+            <SlidersHorizontal className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
+            Categories ({categories.length})
           </button>
           <button
             type="button"
             onClick={openAddModal}
-            className="neu-btn-primary inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl px-4 text-xs font-medium sm:h-10 sm:min-h-[40px] sm:w-auto"
+            className="neu-btn-primary inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg px-4 text-xs font-medium sm:h-10 sm:min-h-[40px] sm:w-auto"
           >
-            <Plus className="h-3.5 w-3.5 shrink-0" />
-            Add Stock SKU
+            <Plus className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            Add stock SKU
           </button>
         </div>
       </div>
@@ -951,13 +951,13 @@ export function InventoryManager({
         <button
           type="button"
           onClick={() => setSelectedCategory("all")}
-          className={`tabular-nums min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-xl px-3.5 py-1.5 text-xs font-medium transition-all sm:min-h-[32px] ${
+          className={`tabular-nums min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors sm:min-h-[32px] ${
             selectedCategory === "all"
               ? "neu-btn-primary"
               : "neu-btn text-ink-secondary"
           }`}
         >
-          All Categories ({items.filter((i) => !i.isDeleted).length})
+          All categories ({items.filter((i) => !i.isDeleted).length})
         </button>
         {categories.map((cat) => {
           const count = items.filter(
@@ -969,7 +969,7 @@ export function InventoryManager({
               key={cat.id}
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
-              className={`tabular-nums min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-xl px-3.5 py-1.5 text-xs font-medium transition-all sm:min-h-[32px] ${
+              className={`tabular-nums min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors sm:min-h-[32px] ${
                 active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
               }`}
             >
@@ -981,12 +981,12 @@ export function InventoryManager({
 
       {/* Manage Categories Panel */}
       {showCategoryForm && (
-        <div className="glass-card rounded-2xl p-4 sm:p-5">
-          <h3 className="text-sm font-semibold text-ink">
-            Product Categories
+        <div className="glass-card rounded-xl p-4 sm:p-5">
+          <h3 className="text-sm font-medium text-ink">
+            Product categories
           </h3>
-          <p className="mt-0.5 text-xs text-ink-secondary">
-            Pre-populated from your business type. Add or remove empty categories.
+          <p className="mt-0.5 text-xs text-ink-muted">
+            Add or remove empty product categories for your workspace.
           </p>
 
           <form
@@ -998,22 +998,22 @@ export function InventoryManager({
               required
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
-              placeholder="New category name"
-              className="neu-input min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+              placeholder="Category name"
+              className="neu-input min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
             />
             <input
               type="text"
               value={catDesc}
               onChange={(e) => setCatDesc(e.target.value)}
-              placeholder="Short description (optional)"
-              className="neu-input min-h-[44px] w-full rounded-xl px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
+              placeholder="Description (optional)"
+              className="neu-input min-h-[44px] w-full rounded-lg px-3.5 text-base sm:h-10 sm:min-h-[40px] sm:px-3 sm:text-sm"
             />
             <button
               type="submit"
               disabled={busy}
-              className="neu-btn-primary min-h-[44px] w-full rounded-xl px-4 text-xs font-medium sm:h-10 sm:min-h-[40px]"
+              className="neu-btn-primary min-h-[44px] w-full rounded-lg px-4 text-xs font-medium sm:h-10 sm:min-h-[40px]"
             >
-              Add Category
+              Add category
             </button>
           </form>
 
@@ -1025,13 +1025,13 @@ export function InventoryManager({
               return (
                 <div
                   key={cat.id}
-                  className="glass-subpanel flex items-center justify-between gap-2 rounded-xl px-3.5 py-2.5"
+                  className="glass-subpanel flex items-center justify-between gap-2 rounded-lg px-3.5 py-2.5"
                 >
                   <div className="min-w-0">
                     <div className="truncate text-xs font-medium text-ink">
                       {cat.name}
                     </div>
-                    <div className="tabular-nums text-[11px] text-ink-muted">
+                    <div className="tabular-nums text-xs text-ink-muted">
                       {itemCount} SKUs
                     </div>
                   </div>
@@ -1042,10 +1042,10 @@ export function InventoryManager({
                       onClick={() =>
                         setPendingDelete({ kind: "category", category: cat })
                       }
-                      className="neu-btn-danger flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-8 sm:w-8 sm:rounded-lg"
+                      className="neu-btn-danger flex h-11 w-11 shrink-0 items-center justify-center rounded-lg sm:h-8 sm:w-8"
                       title="Delete empty category"
                     >
-                      <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                      <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" strokeWidth={1.75} />
                     </button>
                   )}
                 </div>
@@ -1056,22 +1056,22 @@ export function InventoryManager({
       )}
 
       {/* Inventory Table */}
-      <div className="glass-card min-w-0 overflow-hidden rounded-2xl">
+      <div className="glass-card min-w-0 overflow-hidden rounded-xl">
         <div className="table-scroll-container">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="glass-thead text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-                <th className="min-w-[200px] px-4 py-3">SKU & Item</th>
+              <tr className="glass-thead text-xs font-medium text-ink-secondary">
+                <th className="min-w-[200px] px-4 py-3">SKU &amp; item</th>
                 <th className="whitespace-nowrap px-4 py-3">Category</th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">Qty</th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">
-                  Unit Cost
+                  Unit cost
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">
-                  Target Sale
+                  Target sale
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">
-                  Asset Value (Cost)
+                  Asset value
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">Actions</th>
               </tr>
@@ -1095,14 +1095,14 @@ export function InventoryManager({
                     <tr key={item.id} className="glass-row-hover">
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="glass-chip tabular-nums rounded-lg px-2 py-0.5 text-[11px] font-semibold">
+                          <span className="glass-chip font-mono-code tabular-nums rounded-md px-2 py-0.5 text-xs font-medium">
                             {item.sku}
                           </span>
                           <span className="font-medium text-ink">
                             {item.name}
                           </span>
                         </div>
-                        <div className="mt-0.5 text-[11px] text-ink-muted">
+                        <div className="mt-0.5 text-xs text-ink-muted">
                           {item.brand ? `${item.brand} · ` : ""}
                           Supplier: {item.supplierRef}
                         </div>

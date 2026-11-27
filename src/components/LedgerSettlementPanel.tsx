@@ -125,13 +125,13 @@ export function LedgerSettlementPanel({
       />
 
       {/* A4 Cash Flow Export Action Banner */}
-      <div className="glass-card-accent flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div className="glass-card flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-ink">
-            AE Receivable &amp; Cash Flow Ledger (A4 Print &amp; PDF)
+          <div className="text-sm font-medium text-ink">
+            Supplier cash flow statement (A4 PDF)
           </div>
-          <p className="mt-0.5 text-xs text-ink-secondary">
-            Export print-ready A4 statements with AE emblem, ALI ELECTRONIC watermark, continuous carry-forward balances, and signature lines.
+          <p className="mt-0.5 text-xs text-ink-muted">
+            Export printable A4 supplier statements with continuous carry-forward balances.
           </p>
         </div>
         <button
@@ -140,24 +140,24 @@ export function LedgerSettlementPanel({
             setPdfInitialSupplierId(suppliers[0]?.id || "BLANK_MANUAL");
             setPdfModalOpen(true);
           }}
-          className="neu-btn-primary inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold sm:h-10 sm:min-h-[40px] sm:w-auto"
+          className="neu-btn-primary inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-xs font-medium sm:h-10 sm:min-h-[40px] sm:w-auto"
         >
-          <FileDown className="h-4 w-4 shrink-0" />
+          <FileDown className="h-4 w-4 shrink-0" strokeWidth={1.75} />
           <span>Generate Cash Flow PDF</span>
         </button>
       </div>
 
       {/* Top Row: Weekly Settlement Recorder + Settlement History */}
-      <div className="grid gap-5 sm:gap-6 lg:grid-cols-12">
-        <div className="glass-card min-w-0 overflow-hidden rounded-2xl lg:col-span-5">
+      <div className="grid gap-6 lg:grid-cols-12">
+        <div className="glass-card min-w-0 overflow-hidden rounded-xl lg:col-span-5">
           <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
             <div className="flex items-center gap-2">
-              <Landmark className="h-4 w-4 shrink-0 text-accent" />
-              <h2 className="text-sm font-semibold text-ink">
-                Record Weekly Settlement
+              <Landmark className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
+              <h2 className="text-sm font-medium text-ink">
+                Record weekly settlement
               </h2>
             </div>
-            <span className="tabular-nums text-xs font-semibold text-accent">
+            <span className="tabular-nums text-xs font-medium text-accent">
               Open: {formatCurrency(runningReceivableBalance, currency)}
             </span>
           </div>
@@ -289,28 +289,28 @@ export function LedgerSettlementPanel({
         </div>
 
         {/* Settlement History */}
-        <div className="glass-card min-w-0 overflow-hidden rounded-2xl lg:col-span-7">
+        <div className="glass-card min-w-0 overflow-hidden rounded-xl lg:col-span-7">
           <div className="glass-divider-b px-4 py-3.5 sm:px-5">
-            <h2 className="text-sm font-semibold text-ink">
-              Weekly Settlement History ({settlements.length})
+            <h2 className="text-sm font-medium text-ink">
+              Weekly settlement history ({settlements.length})
             </h2>
           </div>
           <div className="table-scroll-container">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="glass-thead text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-                  <th className="whitespace-nowrap px-4 py-2.5">Date & Ref</th>
+                <tr className="glass-thead text-xs font-medium text-ink-secondary">
+                  <th className="whitespace-nowrap px-4 py-2.5">Date &amp; ref</th>
                   <th className="min-w-[150px] px-4 py-2.5">
-                    Recipient & Week
+                    Recipient &amp; week
                   </th>
                   <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                    Balance Before
+                    Before
                   </th>
                   <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                    Settled Amount
+                    Settled
                   </th>
                   <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                    Balance After
+                    After
                   </th>
                 </tr>
               </thead>
@@ -362,15 +362,14 @@ export function LedgerSettlementPanel({
       </div>
 
       {/* Full Running Account Ledger */}
-      <div className="glass-card min-w-0 overflow-hidden rounded-2xl">
+      <div className="glass-card min-w-0 overflow-hidden rounded-xl">
         <div className="glass-divider-b flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-ink">
-              Running Stock & Receivable Ledger ({filteredLedger.length})
+            <h2 className="text-sm font-medium text-ink">
+              Running stock &amp; receivable ledger ({filteredLedger.length})
             </h2>
-            <p className="text-[11px] text-ink-muted">
-              Immutable audit log separating inventory cost deductions from running
-              receivable postings.
+            <p className="text-xs text-ink-muted">
+              Audit log separating inventory cost deductions from receivable postings.
             </p>
           </div>
           <div className="no-scrollbar flex snap-x touch-pan-x gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
@@ -389,13 +388,13 @@ export function LedgerSettlementPanel({
                 key={t}
                 type="button"
                 onClick={() => setFilterType(t)}
-                className={`min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-xl px-3.5 py-1 text-xs font-medium transition-all sm:min-h-[30px] sm:px-2.5 sm:text-[11px] ${
+                className={`min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-lg px-3.5 py-1 text-xs font-medium transition-colors sm:min-h-[30px] sm:px-2.5 ${
                   filterType === t
                     ? "neu-btn-primary"
                     : "neu-btn text-ink-secondary"
                 }`}
               >
-                {t === "ALL" ? "All Entries" : ENTRY_TYPE_LABELS[t]}
+                {t === "ALL" ? "All entries" : ENTRY_TYPE_LABELS[t]}
               </button>
             ))}
           </div>
@@ -404,23 +403,23 @@ export function LedgerSettlementPanel({
         <div className="table-scroll-container">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="glass-thead text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-                <th className="whitespace-nowrap px-4 py-3">Timestamp & Ref</th>
+              <tr className="glass-thead text-xs font-medium text-ink-secondary">
+                <th className="whitespace-nowrap px-4 py-3">Time &amp; ref</th>
                 <th className="whitespace-nowrap px-4 py-3">Event</th>
                 <th className="min-w-[200px] px-4 py-3">
-                  Item / Party / Description
+                  Item, party &amp; note
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">
-                  Inv Cost Delta
+                  Inv delta
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">
-                  Receivable Delta
+                  Receivable delta
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">
-                  Inv Asset After
+                  Inv balance
                 </th>
                 <th className="whitespace-nowrap px-4 py-3 text-right">
-                  Receivable After
+                  Receivable balance
                 </th>
               </tr>
             </thead>
@@ -442,15 +441,15 @@ export function LedgerSettlementPanel({
                   return (
                     <tr key={entry.id} className="glass-row-hover">
                       <td className="whitespace-nowrap px-4 py-2.5">
-                        <div className="tabular-nums font-medium text-ink">
+                        <div className="font-mono-code tabular-nums font-medium text-ink">
                           {entry.reference}
                         </div>
-                        <div className="tabular-nums text-[11px] text-ink-muted">
+                        <div className="tabular-nums text-xs text-ink-muted">
                           {formatDateTime(entry.createdAt)}
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-4 py-2.5">
-                        <span className="glass-subpanel rounded-lg px-2 py-0.5 text-[11px] font-medium text-ink">
+                        <span className="glass-subpanel rounded-md px-2 py-0.5 text-xs font-medium text-ink-secondary">
                           {ENTRY_TYPE_LABELS[entry.type]}
                         </span>
                       </td>
@@ -522,12 +521,12 @@ export function LedgerSettlementPanel({
 
       {/* Persisted Supplier Old Balance & Running Payable Ledger */}
       {suppliers.length > 0 && (
-        <div className="glass-card min-w-0 overflow-hidden rounded-2xl">
+        <div className="glass-card min-w-0 overflow-hidden rounded-xl">
           <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
             <div className="flex items-center gap-2">
-              <Wallet className="h-4 w-4 shrink-0 text-accent" />
-              <h2 className="text-sm font-semibold text-ink">
-                Supplier Old Balance & Payable Summary ({suppliers.length})
+              <Wallet className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
+              <h2 className="text-sm font-medium text-ink">
+                Supplier payable summary ({suppliers.length})
               </h2>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -537,18 +536,18 @@ export function LedgerSettlementPanel({
                   setPdfInitialSupplierId(suppliers[0]?.id || "BLANK_MANUAL");
                   setPdfModalOpen(true);
                 }}
-                className="neu-btn-primary inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-3.5 text-xs font-medium sm:min-h-[32px] sm:rounded-lg sm:px-3 sm:py-1 sm:text-[11px]"
+                className="neu-btn-primary inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-3.5 text-xs font-medium sm:min-h-[32px] sm:px-3 sm:py-1"
               >
-                <FileDown className="h-3.5 w-3.5 shrink-0" />
+                <FileDown className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
                 <span>Generate Cash Flow PDF</span>
               </button>
               {onOpenSuppliers && (
                 <button
                   type="button"
                   onClick={onOpenSuppliers}
-                  className="neu-btn inline-flex min-h-[44px] items-center justify-center rounded-xl px-3.5 text-xs font-medium text-accent sm:min-h-[32px] sm:rounded-lg sm:px-3 sm:py-1 sm:text-[11px]"
+                  className="neu-btn inline-flex min-h-[44px] items-center justify-center rounded-lg px-3.5 text-xs font-medium text-ink-secondary sm:min-h-[32px] sm:px-3 sm:py-1"
                 >
-                  Manage Supplier Balances
+                  Manage suppliers
                 </button>
               )}
             </div>
@@ -557,16 +556,16 @@ export function LedgerSettlementPanel({
           <div className="table-scroll-container">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="glass-thead text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
+                <tr className="glass-thead text-xs font-medium text-ink-secondary">
                   <th className="min-w-[160px] px-4 py-2.5">Supplier</th>
                   <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                    Old Balance
+                    Old balance
                   </th>
                   <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                    Last Bill Amount
+                    Last bill
                   </th>
                   <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                    Total Updated Balance
+                    Updated balance
                   </th>
                 </tr>
               </thead>

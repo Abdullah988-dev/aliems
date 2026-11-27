@@ -203,56 +203,53 @@ export function AuthOnboarding({
         {/* Left Architecture & Demo Panel */}
         <section className="min-w-0 space-y-6 lg:col-span-5">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-accent">
-              Operational Control Plane
+            <p className="text-xs font-medium text-accent">
+              Operational ledger
             </p>
-            <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+            <h1 className="text-xl font-semibold text-ink sm:text-2xl">
               Strict cost-basis stock control and weekly receivable tracking.
             </h1>
             <p className="text-sm leading-relaxed text-ink-secondary">
-              Built for electronics, mobile, and appliance dealers. Every registered
-              business operates inside an isolated database partition with zero
-              invoice clutter.
+              Built for electronics, mobile, and appliance wholesalers. Every workspace
+              runs inside an isolated database partition.
             </p>
           </div>
 
-          <div className="glass-card glass-tbody rounded-2xl">
+          <div className="glass-card glass-tbody rounded-xl">
             <div className="flex items-start gap-3 p-4">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
               <div className="min-w-0">
                 <h2 className="text-sm font-medium text-ink">
-                  Isolated Tenant Partitions
+                  Isolated tenant partitions
                 </h2>
                 <p className="mt-0.5 text-xs leading-relaxed text-ink-secondary">
                   Every session resolves strictly to its own{" "}
-                  <code className="glass-chip rounded px-1.5 py-0.5 text-[11px] font-medium">
+                  <code className="font-mono-code glass-chip rounded px-1.5 py-0.5 text-xs">
                     tenantId
                   </code>
-                  . Inventory SKUs, ledger entries, and settlements never cross
-                  accounts.
+                  . Inventory SKUs, ledger entries, and settlements never cross accounts.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 p-4">
-              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <Lock className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
               <div className="min-w-0">
                 <h2 className="text-sm font-medium text-ink">
-                  Cost vs. Receivable Separation
+                  Cost vs. receivable separation
                 </h2>
                 <p className="mt-0.5 text-xs leading-relaxed text-ink-secondary">
-                  Dispatched sales deduct <strong>only cost price</strong> from
-                  inventory value and route the <strong>sale price</strong> to your
-                  running receivable balance for weekly settlement.
+                  Dispatched sales deduct only cost price from inventory value and route the
+                  sale price to your running receivable balance for weekly settlement.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 p-4">
-              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
               <div className="min-w-0">
                 <h2 className="text-sm font-medium text-ink">
-                  Dynamic Business Onboarding
+                  Business vertical presets
                 </h2>
                 <p className="mt-0.5 text-xs leading-relaxed text-ink-secondary">
                   Selecting Appliances, Electronics, Mobile, or Custom provisions
@@ -263,13 +260,13 @@ export function AuthOnboarding({
           </div>
 
           {demoTenants.length > 0 && (
-            <div className="glass-card rounded-2xl p-4 sm:p-5">
+            <div className="glass-card rounded-xl p-4 sm:p-5">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-secondary">
-                  Pre-Seeded Test Workspaces
+                <h3 className="text-xs font-medium text-ink-secondary">
+                  Demo workspaces
                 </h3>
-                <span className="text-[11px] text-ink-muted">
-                  1-click isolation test
+                <span className="text-xs text-ink-muted">
+                  Quick sign-in
                 </span>
               </div>
               <div className="space-y-2.5">

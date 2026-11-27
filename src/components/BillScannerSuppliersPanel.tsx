@@ -356,66 +356,66 @@ export function BillScannerSuppliersPanel({
       />
 
       {/* Live Persistence Summary Strip */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-        <div className="glass-card min-w-0 rounded-2xl p-4 sm:p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-            Active Suppliers
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="glass-card min-w-0 rounded-xl p-5">
+          <div className="text-xs font-medium text-ink-secondary">
+            Active suppliers
           </div>
-          <div className="tabular-nums mt-1.5 text-lg font-semibold text-ink sm:text-xl xl:text-2xl">
+          <div className="tabular-nums mt-2 text-xl font-semibold text-ink sm:text-2xl">
             {suppliers.length}
           </div>
-          <div className="mt-1 text-[11px] text-ink-muted">
-            Persisted in tenant partition
+          <div className="mt-1.5 text-xs text-ink-muted">
+            Saved in workspace partition
           </div>
         </div>
-        <div className="glass-card min-w-0 rounded-2xl p-4 sm:p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-            Supplier Old Balances
+        <div className="glass-card min-w-0 rounded-xl p-5">
+          <div className="text-xs font-medium text-ink-secondary">
+            Supplier old balances
           </div>
-          <div className="tabular-nums mt-1.5 break-words text-lg font-semibold text-warning sm:text-xl xl:text-2xl">
+          <div className="tabular-nums mt-2 break-words text-xl font-semibold text-warning sm:text-2xl">
             {formatCurrency(supplierTotals.totalOldBalance, currency)}
           </div>
-          <div className="mt-1 text-[11px] text-ink-muted">
-            Previous / opening supplier balances
+          <div className="mt-1.5 text-xs text-ink-muted">
+            Opening balances carried forward
           </div>
         </div>
-        <div className="glass-card-accent min-w-0 rounded-2xl p-4 sm:p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-accent">
-            Total Supplier Running Balance
+        <div className="glass-card-accent min-w-0 rounded-xl p-5">
+          <div className="text-xs font-medium text-ink-secondary">
+            Total supplier payable
           </div>
-          <div className="tabular-nums mt-1.5 break-words text-lg font-semibold text-accent sm:text-xl xl:text-2xl">
+          <div className="tabular-nums mt-2 break-words text-xl font-semibold text-accent sm:text-2xl">
             {formatCurrency(supplierTotals.totalPayable, currency)}
           </div>
-          <div className="mt-1 text-[11px] text-ink-secondary">
+          <div className="mt-1.5 text-xs text-ink-muted">
             Old balance + billed purchases
           </div>
         </div>
       </div>
 
       {notice && (
-        <div className="alert-success flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-medium">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
+        <div className="alert-success flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-medium">
+          <CheckCircle2 className="h-4 w-4 shrink-0" strokeWidth={1.75} />
           <span>{notice}</span>
         </div>
       )}
 
-      {/* Main Split: AI Bill Scanner & Supplier Old Balance */}
-      <div className="grid gap-5 sm:gap-6 lg:grid-cols-12">
-        {/* AI Bill Scanner */}
-        <section className="glass-card min-w-0 overflow-hidden rounded-2xl lg:col-span-7">
+      {/* Main Split: Bill Scanner & Supplier Old Balance */}
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* Bill Scanner */}
+        <section className="glass-card min-w-0 overflow-hidden rounded-xl lg:col-span-7">
           <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
             <div className="flex min-w-0 items-center gap-2">
-              <ScanLine className="h-4 w-4 shrink-0 text-accent" />
-              <h2 className="text-sm font-semibold text-ink">
-                AI Bill Scanner (Purchase Invoice to Live Stock)
+              <ScanLine className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
+              <h2 className="text-sm font-medium text-ink">
+                Bill scanner (invoice to stock)
               </h2>
             </div>
             <button
               type="button"
               onClick={handleLoadSampleBill}
-              className="neu-btn inline-flex min-h-[44px] items-center rounded-xl px-3 text-xs font-medium text-accent sm:min-h-[32px] sm:rounded-lg sm:py-1 sm:text-[11px]"
+              className="neu-btn inline-flex min-h-[44px] items-center rounded-lg px-3 text-xs font-medium text-ink-secondary sm:min-h-[32px] sm:py-1"
             >
-              Load Sample Bill
+              Load sample bill
             </button>
           </div>
 
@@ -494,28 +494,27 @@ export function BillScannerSuppliersPanel({
                       onClick={handleScanWithGemini}
                       className="neu-btn-primary min-h-[44px] w-full rounded-xl px-4 text-xs font-medium sm:h-9 sm:min-h-[36px] sm:w-auto"
                     >
-                      {scanning ? "Scanning with Gemini..." : "Scan Bill"}
+                      {scanning ? "Reading bill..." : "Scan bill"}
                     </button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <Upload className="h-6 w-6 text-accent" />
+                  <Upload className="h-5 w-5 text-ink-muted" strokeWidth={1.75} />
                   <div>
                     <p className="text-xs font-medium text-ink">
-                      Drag and drop a supplier bill here (JPG, PNG, WebP, or PDF)
+                      Drop a supplier invoice here (JPG, PNG, WebP, or PDF)
                     </p>
-                    <p className="mt-0.5 text-[11px] text-ink-muted">
-                      Smart upsert increments existing SKUs and saves directly to your
-                      database.
+                    <p className="mt-0.5 text-xs text-ink-muted">
+                      Updates existing SKU stock or creates new SKUs automatically.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="neu-btn min-h-[44px] w-full rounded-xl px-4 text-xs font-medium text-ink sm:h-9 sm:min-h-[36px] sm:w-auto"
+                    className="neu-btn min-h-[44px] w-full rounded-lg px-4 text-xs font-medium text-ink sm:h-9 sm:min-h-[36px] sm:w-auto"
                   >
-                    Select Bill Image / PDF
+                    Choose bill file
                   </button>
                 </>
               )}
@@ -570,20 +569,20 @@ export function BillScannerSuppliersPanel({
                   </div>
                 </div>
 
-                <div className="glass-card min-w-0 overflow-hidden rounded-xl">
+                <div className="glass-card min-w-0 overflow-hidden rounded-lg">
                   <div className="table-scroll-container">
                     <table className="w-full border-collapse text-left text-xs">
                       <thead>
-                        <tr className="glass-thead text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
-                          <th className="min-w-[165px] px-3 py-2.5">Item Name</th>
-                          <th className="min-w-[120px] px-3 py-2.5">SKU / Model</th>
+                        <tr className="glass-thead text-xs font-medium text-ink-secondary">
+                          <th className="min-w-[165px] px-3 py-2.5">Item name</th>
+                          <th className="min-w-[120px] px-3 py-2.5">SKU / model</th>
                           <th className="min-w-[125px] px-3 py-2.5">Category</th>
                           <th className="min-w-[85px] px-3 py-2.5 text-right">Qty</th>
                           <th className="min-w-[110px] px-3 py-2.5 text-right">
-                            Unit Cost
+                            Unit cost
                           </th>
                           <th className="whitespace-nowrap px-3 py-2.5 text-right">
-                            Line Total
+                            Line total
                           </th>
                           <th className="px-3 py-2.5 text-right"></th>
                         </tr>
@@ -720,18 +719,14 @@ export function BillScannerSuppliersPanel({
         </section>
 
         {/* Supplier Old Balance (Opening Balance) Manager */}
-        <section className="glass-card min-w-0 overflow-hidden rounded-2xl lg:col-span-5">
+        <section className="glass-card min-w-0 overflow-hidden rounded-xl lg:col-span-5">
           <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2 px-4 py-3.5 sm:px-5">
             <div className="flex items-center gap-2">
-              <Wallet className="h-4 w-4 shrink-0 text-accent" />
-              <h2 className="text-sm font-semibold text-ink">
-                Supplier Old Balance Tracker
+              <Wallet className="h-4 w-4 shrink-0 text-ink-muted" strokeWidth={1.75} />
+              <h2 className="text-sm font-medium text-ink">
+                Supplier balance tracker
               </h2>
             </div>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
-              <Database className="h-3 w-3 shrink-0 text-accent" />
-              Live DB
-            </span>
           </div>
 
           <form onSubmit={handleSupplierSubmit} className="space-y-4 p-4 sm:p-5">
@@ -846,14 +841,14 @@ export function BillScannerSuppliersPanel({
       </div>
 
       {/* Persisted Supplier Accounts & Old Balances */}
-      <div className="glass-card min-w-0 overflow-hidden rounded-2xl">
+      <div className="glass-card min-w-0 overflow-hidden rounded-xl">
         <div className="glass-divider-b flex flex-wrap items-center justify-between gap-2.5 px-4 py-3.5 sm:px-5">
           <div>
-            <h3 className="text-sm font-semibold text-ink">
-              Supplier Accounts & Running Balances ({suppliers.length})
+            <h3 className="text-sm font-medium text-ink">
+              Supplier accounts ({suppliers.length})
             </h3>
-            <span className="text-[11px] text-ink-muted">
-              Click Edit to update a supplier&apos;s opening balance or export A4 Cash Flow PDF
+            <span className="text-xs text-ink-muted">
+              Update an opening balance or export an A4 Cash Flow PDF
             </span>
           </div>
           <button
@@ -862,25 +857,25 @@ export function BillScannerSuppliersPanel({
               setPdfInitialSupplierId(suppliers[0]?.id || "BLANK_MANUAL");
               setPdfModalOpen(true);
             }}
-            className="neu-btn-primary inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-4 text-xs font-semibold sm:h-9 sm:min-h-[36px] sm:w-auto"
+            className="neu-btn-primary inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-4 text-xs font-medium sm:h-9 sm:min-h-[36px] sm:w-auto"
           >
-            <FileDown className="h-4 w-4 shrink-0" />
+            <FileDown className="h-4 w-4 shrink-0" strokeWidth={1.75} />
             <span>Generate Cash Flow PDF</span>
           </button>
         </div>
         <div className="table-scroll-container">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="glass-thead text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
+              <tr className="glass-thead text-xs font-medium text-ink-secondary">
                 <th className="min-w-[160px] px-4 py-2.5">Supplier</th>
                 <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                  Old Balance
+                  Old balance
                 </th>
                 <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                  Last Bill Amount
+                  Last bill
                 </th>
                 <th className="whitespace-nowrap px-4 py-2.5 text-right">
-                  Updated Balance
+                  Updated balance
                 </th>
                 <th className="whitespace-nowrap px-4 py-2.5 text-right">Action</th>
               </tr>

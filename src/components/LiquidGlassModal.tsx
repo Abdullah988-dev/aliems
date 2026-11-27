@@ -59,22 +59,19 @@ export function LiquidGlassModal({
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                  tone === "danger" ? "alert-danger" : "glass-card-accent text-accent"
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                  tone === "danger" ? "alert-danger" : "glass-subpanel text-accent"
                 }`}
               >
-                <AlertTriangle className="h-5 w-5" />
+                <AlertTriangle className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div className="min-w-0">
                 <h3
                   id="liquid-modal-title"
-                  className="break-words text-base font-semibold tracking-tight text-ink"
+                  className="break-words text-base font-medium text-ink"
                 >
                   {title}
                 </h3>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-ink-muted">
-                  Confirmation Required
-                </p>
               </div>
             </div>
 
@@ -83,23 +80,23 @@ export function LiquidGlassModal({
               disabled={busy}
               onClick={onCancel}
               aria-label="Close modal"
-              className="neu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-secondary sm:h-8 sm:w-8 sm:rounded-lg"
+              className="neu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-secondary sm:h-8 sm:w-8"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" strokeWidth={1.75} />
             </button>
           </div>
 
-          <p className="text-xs leading-relaxed text-ink-secondary">{description}</p>
+          <p className="text-sm leading-relaxed text-ink-secondary">{description}</p>
 
           {details.length > 0 && (
-            <div className="glass-subpanel space-y-2 rounded-xl p-3.5 text-xs">
+            <div className="glass-subpanel space-y-2 rounded-lg p-3.5 text-xs">
               {details.map((row) => (
                 <div
                   key={row.label}
                   className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5"
                 >
                   <span className="shrink-0 text-ink-muted">{row.label}</span>
-                  <span className="tabular-nums break-words text-right font-semibold text-ink">
+                  <span className="tabular-nums break-words text-right font-medium text-ink">
                     {row.value}
                   </span>
                 </div>
@@ -112,7 +109,7 @@ export function LiquidGlassModal({
               type="button"
               disabled={busy}
               onClick={onCancel}
-              className="neu-btn min-h-[44px] w-full rounded-xl px-4 text-sm font-medium text-ink sm:h-9 sm:min-h-[36px] sm:w-auto sm:rounded-lg sm:text-xs"
+              className="neu-btn min-h-[44px] w-full rounded-lg px-4 text-sm font-medium text-ink sm:h-9 sm:min-h-[36px] sm:w-auto sm:text-xs"
             >
               {cancelLabel}
             </button>
@@ -120,7 +117,7 @@ export function LiquidGlassModal({
               type="button"
               disabled={busy}
               onClick={onConfirm}
-              className={`min-h-[44px] w-full rounded-xl px-4 text-sm font-medium sm:h-9 sm:min-h-[36px] sm:w-auto sm:rounded-lg sm:text-xs ${
+              className={`min-h-[44px] w-full rounded-lg px-4 text-sm font-medium sm:h-9 sm:min-h-[36px] sm:w-auto sm:text-xs ${
                 tone === "danger" ? "neu-btn-danger-solid" : "neu-btn-primary"
               }`}
             >

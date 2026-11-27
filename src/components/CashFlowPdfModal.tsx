@@ -202,18 +202,18 @@ export function CashFlowPdfModal({
         <div className="relative z-10 space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="glass-card-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-accent">
-                <Printer className="h-5 w-5" />
+              <div className="glass-subpanel flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink-secondary">
+                <Printer className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div className="min-w-0">
                 <h3
                   id="cashflow-pdf-modal-title"
-                  className="break-words text-base font-semibold tracking-tight text-ink"
+                  className="break-words text-base font-medium text-ink"
                 >
-                  AE Weekly Cash Flow Ledger PDF
+                  Supplier cash flow PDF
                 </h3>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-ink-muted">
-                  Print-Ready A4 Vector Statement
+                <p className="text-xs text-ink-muted">
+                  A4 receivable statement
                 </p>
               </div>
             </div>
@@ -223,9 +223,9 @@ export function CashFlowPdfModal({
               disabled={generating}
               onClick={onClose}
               aria-label="Close modal"
-              className="neu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-secondary sm:h-8 sm:w-8 sm:rounded-lg"
+              className="neu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-secondary sm:h-8 sm:w-8"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" strokeWidth={1.75} />
             </button>
           </div>
 

@@ -28,7 +28,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue>({
   theme: "light",
   isTransitioning: false,
-  toggleTheme: () => {},
+  toggleTheme: () => { },
 });
 
 const STORAGE_KEY = "aliems-theme";
@@ -146,39 +146,36 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
               ? "Switching to Dark Mode"
               : "Switching to Light Mode"
           }
-          className={`theme-overlay ${
-            overlay.targetTheme === "dark"
+          className={`theme-overlay ${overlay.targetTheme === "dark"
               ? "theme-overlay--dark"
               : "theme-overlay--light"
-          } ${
-            overlay.phase === "entering"
+            } ${overlay.phase === "entering"
               ? "theme-overlay--entering"
               : overlay.phase === "visible"
                 ? "theme-overlay--visible"
                 : "theme-overlay--exiting"
-          }`}
+            }`}
         >
-          <div className="theme-overlay-content max-w-full px-3">
-            <div className="theme-overlay-badge h-16 w-16 sm:h-24 sm:w-24">
+          <div className="theme-overlay-content max-w-full px-4">
+            <div className="theme-overlay-badge h-14 w-14 sm:h-16 sm:w-16">
               {overlay.targetTheme === "dark" ? (
-                <Moon className="h-8 w-8 text-[#7cc4d4] sm:h-12 sm:w-12" />
+                <Moon className="h-6 w-6 text-[#5ec2d6] sm:h-7 sm:w-7" strokeWidth={1.75} />
               ) : (
-                <Sun className="h-8 w-8 text-[#b45309] sm:h-12 sm:w-12" />
+                <Sun className="h-6 w-6 text-[#b45309] sm:h-7 sm:w-7" strokeWidth={1.75} />
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <div className="text-2xl font-bold tracking-[0.12em] min-[380px]:text-3xl sm:text-5xl sm:tracking-[0.16em] md:text-6xl">
-                {overlay.targetTheme === "dark" ? "DARK MODE" : "LIGHT MODE"}
+            <div className="space-y-1">
+              <div className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                {overlay.targetTheme === "dark" ? "Dark mode" : "Light mode"}
               </div>
               <p
-                className={`text-[11px] font-medium tracking-widest uppercase sm:text-sm ${
-                  overlay.targetTheme === "dark"
-                    ? "text-slate-300/80"
-                    : "text-slate-600/80"
-                }`}
+                className={`text-xs ${overlay.targetTheme === "dark"
+                    ? "text-slate-400"
+                    : "text-slate-500"
+                  }`}
               >
-                AliEMS Appearance Updated
+                Workspace theme updated
               </p>
             </div>
           </div>
@@ -213,18 +210,16 @@ export function ThemeToggle({
     >
       <span className="relative flex h-4 w-4 items-center justify-center overflow-hidden">
         <Sun
-          className={`theme-icon-item absolute h-3.5 w-3.5 text-warning-icon ${
-            isDark
+          className={`theme-icon-item absolute h-3.5 w-3.5 text-warning-icon ${isDark
               ? "rotate-0 scale-100 opacity-100"
               : "-rotate-90 scale-50 opacity-0"
-          }`}
+            }`}
         />
         <Moon
-          className={`theme-icon-item absolute h-3.5 w-3.5 text-accent ${
-            isDark
+          className={`theme-icon-item absolute h-3.5 w-3.5 text-accent ${isDark
               ? "rotate-90 scale-50 opacity-0"
               : "rotate-0 scale-100 opacity-100"
-          }`}
+            }`}
         />
       </span>
       <span className={showLabelAlways ? "inline" : "hidden sm:inline"}>
