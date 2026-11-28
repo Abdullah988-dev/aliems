@@ -1,47 +1,38 @@
 import { NextResponse } from "next/server";
-import { jsonError, requireApiSession } from "@/lib/api-helpers";
+import { jsonError, requireApiSession, safeApiError } from "@/lib/api-helpers";
 import { getDb } from "@/lib/db";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
+import { formatZodError, saleDispatchSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  const limited = enforceApiRateLimit(request, "sales:post");
+  if (limited) return limited;
+
+  if (new URL(request.url).search) {
+    return jsonError("Query parameters are not permitted on state-changing requests.", 400);
+  }
+
   const { session, error } = await requireApiSession();
   if (error) return error;
 
   try {
-    const body = (await request.json()) as {
-      itemId?: string;
-      quantity?: number;
-      unitSalePrice?: number | string;
-      customerName?: string;
-      reference?: string;
-      notes?: string;
-    };
-
-    if (!body.itemId) {
-      return jsonError("itemId is required.");
-    }
-    if (
-      body.unitSalePrice === undefined ||
-      body.unitSalePrice === null ||
-      String(body.unitSalePrice).trim() === ""
-    ) {
-      return jsonError("Unit sale price is required for sale dispatch.");
+    const rawBody = await request.json();
+    const parsed = saleDispatchSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonError(formatZodError(parsed.error), 400);
     }
 
-    const parsedSalePrice = Number(body.unitSalePrice);
-    if (!Number.isFinite(parsedSalePrice) || parsedSalePrice < 0) {
-      return jsonError("Unit sale price must be a non-negative number.");
-    }
-
+    const data = parsed.data;
     const db = await getDb();
     const result = await db.recordSaleDispatch({
       tenantId: session.tenantId,
       userId: session.userId,
-      itemId: body.itemId,
-      quantity: Number(body.quantity ?? 0),
-      unitSalePrice: parsedSalePrice,
-      customerName: body.customerName,
-      reference: body.reference,
-      notes: body.notes,
+      itemId: data.itemId,
+      quantity: data.quantity,
+      unitSalePrice: data.unitSalePrice,
+      customerName: data.customerName,
+      reference: data.reference,
+      notes: data.notes,
     });
 
     const overview = await db.getTenantOverview(session.tenantId, session.userId);
@@ -50,9 +41,6 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (err) {
-    return jsonError(
-      err instanceof Error ? err.message : "Failed to record sale dispatch.",
-      400,
-    );
+    return safeApiError(err, "Failed to record sale dispatch.", 400, "POST /api/sales");
   }
 }

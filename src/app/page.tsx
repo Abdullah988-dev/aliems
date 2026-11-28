@@ -9,7 +9,10 @@ export default async function HomePage() {
 
   try {
     const db = await getDb();
-    const demoTenants = await db.listDemoTenants();
+    const allowDemoAccounts =
+      process.env.NODE_ENV !== "production" ||
+      process.env.ENABLE_DEMO_LOGIN === "true";
+    const demoTenants = allowDemoAccounts ? await db.listDemoTenants() : [];
     const session = await getSessionFromCookies();
 
     const initialOverview = session
@@ -24,21 +27,28 @@ export default async function HomePage() {
       />
     );
   } catch (err) {
-    const message =
+    const rawMsg =
       err instanceof Error ? err.message : "Database initialization failed.";
+    console.error("[HomePage] Initialization error:", rawMsg);
+    const displayMessage =
+      process.env.NODE_ENV === "production"
+        ? "Service temporarily unavailable. Verify database configuration and network access."
+        : rawMsg;
+
     return (
       <main className="flex min-h-screen items-center justify-center p-6 text-ink">
-        <div className="glass-card max-w-lg rounded-2xl p-6 space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-wider text-danger">
-            Database Connection Error
+        <div className="glass-card max-w-lg space-y-3 rounded-xl p-6">
+          <div className="text-xs font-medium text-danger">
+            Database connection error
           </div>
           <h1 className="text-lg font-semibold text-ink">
-            AliEMS could not connect to MongoDB Atlas
+            AliEMS could not connect to the database
           </h1>
-          <p className="text-xs leading-relaxed text-ink-secondary">{message}</p>
-          <p className="text-[11px] text-ink-muted">
-            Verify <code className="glass-chip rounded px-1 py-0.5">MONGODB_URI</code>{" "}
-            credentials and MongoDB Atlas IP Access List settings, then refresh.
+          <p className="text-xs leading-relaxed text-ink-secondary">
+            {displayMessage}
+          </p>
+          <p className="text-xs text-ink-muted">
+            Verify server configuration and network access settings, then refresh.
           </p>
         </div>
       </main>

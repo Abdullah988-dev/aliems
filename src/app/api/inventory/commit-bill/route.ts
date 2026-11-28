@@ -1,32 +1,35 @@
 import { NextResponse } from "next/server";
-import { jsonError, requireApiSession } from "@/lib/api-helpers";
+import { jsonError, requireApiSession, safeApiError } from "@/lib/api-helpers";
 import { getDb } from "@/lib/db";
-import type { ScannedBillItem } from "@/types/domain";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
+import { commitBillSchema, formatZodError } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  const limited = enforceApiRateLimit(request, "commit-bill:post");
+  if (limited) return limited;
+
+  if (new URL(request.url).search) {
+    return jsonError("Query parameters are not permitted on state-changing requests.", 400);
+  }
+
   const { session, error } = await requireApiSession();
   if (error) return error;
 
   try {
-    const body = (await request.json()) as {
-      supplierName?: string;
-      billDate?: string;
-      oldBalance?: number | string | null;
-      items?: Array<Partial<ScannedBillItem>>;
-      billTotal?: number;
-    };
-
-    if (!Array.isArray(body.items) || body.items.length === 0) {
-      return jsonError("At least one bill item is required to save to live stock.");
+    const rawBody = await request.json();
+    const parsed = commitBillSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonError(formatZodError(parsed.error), 400);
     }
 
+    const data = parsed.data;
     let parsedOldBalance: number | undefined;
     if (
-      body.oldBalance !== undefined &&
-      body.oldBalance !== null &&
-      String(body.oldBalance).trim() !== ""
+      data.oldBalance !== undefined &&
+      data.oldBalance !== null &&
+      String(data.oldBalance).trim() !== ""
     ) {
-      parsedOldBalance = Number(body.oldBalance);
+      parsedOldBalance = Number(data.oldBalance);
       if (!Number.isFinite(parsedOldBalance) || parsedOldBalance < 0) {
         return jsonError("Supplier old balance must be a non-negative number.");
       }
@@ -36,19 +39,20 @@ export async function POST(request: Request) {
     const summary = await db.commitScannedBill({
       tenantId: session.tenantId,
       userId: session.userId,
-      supplierName: body.supplierName,
-      billDate: body.billDate,
+      supplierName: data.supplierName,
+      billDate: data.billDate,
       oldBalance: parsedOldBalance,
-      items: body.items,
+      items: data.items,
     });
 
     const overview = await db.getTenantOverview(session.tenantId, session.userId);
     return NextResponse.json({ summary, overview }, { status: 201 });
   } catch (err) {
-    const msg =
-      err instanceof Error ? err.message : "Failed to save scanned bill to stock.";
-    console.error("[POST /api/inventory/commit-bill] 400:", msg);
-    return jsonError(msg, 400);
+    return safeApiError(
+      err,
+      "Failed to save scanned bill to stock.",
+      400,
+      "POST /api/inventory/commit-bill",
+    );
   }
 }
-

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AuthGuard } from "@/components/AuthGuard";
 import { AuthOnboarding } from "@/components/AuthOnboarding";
 import { DashboardShell } from "@/components/DashboardShell";
 import type { BusinessType, TenantOverview } from "@/types/domain";
@@ -36,11 +37,13 @@ export function AliEmsApp({
   }
 
   return (
-    <DashboardShell
-      overview={overview}
-      onOverviewUpdate={(next) => setOverview(next)}
-      onLoggedOut={() => setOverview(null)}
-    />
+    <AuthGuard overview={overview} loginRedirect="/login">
+      <DashboardShell
+        overview={overview}
+        onOverviewUpdate={(next) => setOverview(next)}
+        onLoggedOut={() => setOverview(null)}
+      />
+    </AuthGuard>
   );
 }
 

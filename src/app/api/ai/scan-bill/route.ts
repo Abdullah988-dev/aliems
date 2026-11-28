@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { jsonError, requireApiSession } from "@/lib/api-helpers";
+import { jsonError, requireApiSession, safeApiError } from "@/lib/api-helpers";
 import { computeBillItemsTotal, normalizeScannedItem } from "@/lib/bill-helpers";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
+import { sanitizePlainText } from "@/lib/sanitize";
 import type { ScannedBillItem, ScannedBillPayload } from "@/types/domain";
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -52,6 +54,9 @@ function resolveAllowedMime(file: File): string | null {
 }
 
 export async function POST(request: Request) {
+  const limited = enforceApiRateLimit(request, "ai:scan-bill", 20, 15 * 60 * 1000);
+  if (limited) return limited;
+
   const { error } = await requireApiSession();
   if (error) {
     console.error("[POST /api/ai/scan-bill] 401: Authentication required.");
@@ -60,8 +65,10 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
-    return badRequest(
-      "GEMINI_API_KEY is not set in .env.local. Add your Gemini API key and restart the server.",
+    console.error("[POST /api/ai/scan-bill] 503: GEMINI_API_KEY is missing.");
+    return jsonError(
+      "Bill scanner service is not configured on the server.",
+      503,
     );
   }
 
@@ -221,12 +228,20 @@ export async function POST(request: Request) {
     };
 
     const items = (Array.isArray(parsed.items) ? parsed.items : []).map((row, idx) =>
-      normalizeScannedItem(row, idx),
+      normalizeScannedItem(
+        {
+          ...row,
+          itemName: row.itemName ? sanitizePlainText(String(row.itemName)) : undefined,
+          skuOrModel: row.skuOrModel ? sanitizePlainText(String(row.skuOrModel)) : undefined,
+          category: row.category ? sanitizePlainText(String(row.category)) : undefined,
+        },
+        idx,
+      ),
     );
 
     const payload: ScannedBillPayload = {
-      supplierName: (parsed.supplierName || "").trim(),
-      billDate: (parsed.billDate || "").trim(),
+      supplierName: sanitizePlainText(parsed.supplierName || ""),
+      billDate: sanitizePlainText(parsed.billDate || ""),
       items,
       billTotal:
         typeof parsed.billTotal === "number" &&
@@ -242,9 +257,7 @@ export async function POST(request: Request) {
       extracted: payload,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Failed to scan bill file.";
-    console.error("[POST /api/ai/scan-bill] 500:", msg);
-    return jsonError(msg, 500);
+    return safeApiError(err, "Failed to scan bill file.", 500, "POST /api/ai/scan-bill");
   }
 }
 

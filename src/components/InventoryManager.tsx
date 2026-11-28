@@ -330,10 +330,11 @@ export function InventoryManager({
         );
       } else {
         const category = pendingDelete.category;
-        const res = await fetch(
-          `/api/categories?categoryId=${encodeURIComponent(category.id)}`,
-          { method: "DELETE" },
-        );
+        const res = await fetch("/api/categories", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ categoryId: category.id }),
+        });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to delete category.");
         if (selectedCategory === category.id) setSelectedCategory("all");
@@ -953,7 +954,7 @@ export function InventoryManager({
           onClick={() => setSelectedCategory("all")}
           className={`tabular-nums min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors sm:min-h-[32px] ${
             selectedCategory === "all"
-              ? "neu-btn-primary"
+              ? "neu-pill-active"
               : "neu-btn text-ink-secondary"
           }`}
         >
@@ -970,7 +971,7 @@ export function InventoryManager({
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
               className={`tabular-nums min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors sm:min-h-[32px] ${
-                active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
+                active ? "neu-pill-active" : "neu-btn text-ink-secondary"
               }`}
             >
               {cat.name} ({count})

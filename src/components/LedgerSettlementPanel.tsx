@@ -390,7 +390,7 @@ export function LedgerSettlementPanel({
                 onClick={() => setFilterType(t)}
                 className={`min-h-[44px] shrink-0 snap-start whitespace-nowrap rounded-lg px-3.5 py-1 text-xs font-medium transition-colors sm:min-h-[30px] sm:px-2.5 ${
                   filterType === t
-                    ? "neu-btn-primary"
+                    ? "neu-pill-active"
                     : "neu-btn text-ink-secondary"
                 }`}
               >

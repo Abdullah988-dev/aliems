@@ -41,7 +41,7 @@ import type {
 } from "@/types/domain";
 
 function newId(prefix: string): string {
-  return `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+  return `${prefix}_${crypto.randomUUID().replace(/-/g, "")}`;
 }
 
 function generateUniqueSku(

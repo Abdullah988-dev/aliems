@@ -1,29 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jsonError, requireApiSession } from "@/lib/api-helpers";
+import { jsonError, requireApiSession, safeApiError } from "@/lib/api-helpers";
 import { buildWeeklyCashFlowReport } from "@/lib/cashflow-ledger";
 import { getDb } from "@/lib/db";
-import type { CashFlowPeriodType } from "@/types/domain";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
+import { cashFlowReportSchema, formatZodError } from "@/lib/validation";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
+  const limited = enforceApiRateLimit(request, "reports:cashflow");
+  if (limited) return limited;
+
+  if (request.nextUrl.search) {
+    return jsonError("Sensitive report filters must not be passed in URL query strings.", 400);
+  }
+
   const { session, error } = await requireApiSession();
   if (error) return error;
 
   try {
-    const { searchParams } = new URL(request.url);
-    const supplier = (searchParams.get("supplier") || "BLANK_MANUAL").trim();
-    const rawPeriod = (searchParams.get("periodType") || "weekly").trim();
-    const periodType: CashFlowPeriodType =
-      rawPeriod === "monthly" || rawPeriod === "custom" ? rawPeriod : "weekly";
+    const rawBody = await request.json();
+    const parsed = cashFlowReportSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonError(formatZodError(parsed.error), 400);
+    }
 
-    const startDate = searchParams.get("startDate") || undefined;
-    const endDate = searchParams.get("endDate") || undefined;
-    const periodLabel = searchParams.get("periodLabel") || undefined;
-    const blankRowsParam = searchParams.get("blankRows");
-    const blankRows =
-      blankRowsParam !== null && blankRowsParam !== ""
-        ? Number(blankRowsParam)
-        : 8;
-
+    const data = parsed.data;
     const db = await getDb();
     const overview = await db.getTenantOverview(session.tenantId, session.userId);
     if (!overview) {
@@ -36,21 +36,21 @@ export async function GET(request: NextRequest) {
       items: overview.items,
       ledger: overview.ledger,
       settlements: overview.settlements,
-      supplierSelector: supplier,
-      periodType,
-      startDate,
-      endDate,
-      periodLabel,
-      blankRows,
+      supplierSelector: data.supplier,
+      periodType: data.periodType,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      periodLabel: data.periodLabel,
+      blankRows: data.blankRows,
     });
 
     return NextResponse.json({ report });
   } catch (err) {
-    const msg =
-      err instanceof Error
-        ? err.message
-        : "Failed to generate weekly cash flow report.";
-    return jsonError(msg, 400);
+    return safeApiError(
+      err,
+      "Failed to generate weekly cash flow report.",
+      400,
+      "POST /api/reports/weekly-cashflow",
+    );
   }
 }
-

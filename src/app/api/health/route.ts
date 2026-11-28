@@ -1,27 +1,27 @@
 import { NextResponse } from "next/server";
 import { getDb, getStorageMode } from "@/lib/db";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = enforceApiRateLimit(request, "health", 60, 60 * 1000);
+  if (limited) return limited;
+
   try {
-    const db = await getDb();
-    const demoTenants = await db.listDemoTenants();
+    await getDb();
     return NextResponse.json({
       status: "ok",
       app: "AliEMS",
       storageMode: getStorageMode(),
-      demoTenants,
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       {
         status: "error",
-        storageMode: getStorageMode(),
-        error: err instanceof Error ? err.message : "Database check failed",
+        app: "AliEMS",
       },
       { status: 500 },
     );
   }
 }
-

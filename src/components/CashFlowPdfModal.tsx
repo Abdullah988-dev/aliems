@@ -148,16 +148,18 @@ export function CashFlowPdfModal({
 
     setGenerating(true);
     try {
-      const qs = new URLSearchParams({
-        supplier: selectedSupplier,
-        periodType,
-        startDate: resolvedPeriod.startDate,
-        endDate: resolvedPeriod.endDate,
-        periodLabel: resolvedPeriod.label,
-        blankRows: String(Math.round(parsedBlank)),
+      const res = await fetch("/api/reports/weekly-cashflow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          supplier: selectedSupplier,
+          periodType,
+          startDate: resolvedPeriod.startDate,
+          endDate: resolvedPeriod.endDate,
+          periodLabel: resolvedPeriod.label,
+          blankRows: Math.round(parsedBlank),
+        }),
       });
-
-      const res = await fetch(`/api/reports/weekly-cashflow?${qs.toString()}`);
       const data = (await res.json().catch(() => ({}))) as {
         report?: WeeklyCashFlowReportData;
         error?: string;
@@ -287,7 +289,7 @@ export function CashFlowPdfModal({
                   onClick={() => setPeriodType(opt.id)}
                   className={`min-h-[44px] rounded-xl px-3 text-xs font-medium transition-all sm:h-9 sm:min-h-[36px] ${
                     periodType === opt.id
-                      ? "neu-btn-primary"
+                      ? "neu-pill-active"
                       : "neu-btn text-ink-secondary"
                   }`}
                 >

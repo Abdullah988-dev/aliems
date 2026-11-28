@@ -15,6 +15,7 @@ export function WorkspaceSettings({
   onOverviewUpdate,
 }: WorkspaceSettingsProps) {
   const { tenant, user, storageMode } = overview;
+  const isOwner = user.role === "owner";
 
   const [businessName, setBusinessName] = useState(tenant.businessName);
   const [businessType, setBusinessType] = useState<BusinessType>(
@@ -31,6 +32,10 @@ export function WorkspaceSettings({
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!isOwner) {
+      setError("Owner role required to update workspace settings.");
+      return;
+    }
     setError(null);
     setSavedMsg(null);
     setSaving(true);
@@ -149,7 +154,7 @@ export function WorkspaceSettings({
               type="checkbox"
               checked={provisionCategories}
               onChange={(e) => setProvisionCategories(e.target.checked)}
-              className="h-4 w-4 shrink-0 accent-[#0f4c5c]"
+              className="neu-checkbox h-4 w-4 shrink-0"
             />
             <span>
               Auto-provision missing preset categories for{" "}
@@ -161,10 +166,14 @@ export function WorkspaceSettings({
 
           <button
             type="submit"
-            disabled={saving}
-            className="neu-btn-primary min-h-[44px] w-full rounded-lg px-5 text-sm font-medium sm:h-10 sm:min-h-[40px] sm:w-auto sm:text-xs"
+            disabled={saving || !isOwner}
+            className="neu-btn-primary min-h-[44px] w-full rounded-lg px-5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:min-h-[40px] sm:w-auto sm:text-xs"
           >
-            {saving ? "Updating..." : "Save workspace profile"}
+            {saving
+              ? "Updating..."
+              : isOwner
+                ? "Save workspace profile"
+                : "Owner access required"}
           </button>
         </form>
       </div>

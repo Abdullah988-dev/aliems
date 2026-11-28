@@ -18,10 +18,13 @@
 .DS_Store
 *.pem
 
-# debug
+# debug & backup files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+*.sql
+*.bak
 
 # env files
 .env*

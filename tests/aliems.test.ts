@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { parseOptionalPrice } from "@/lib/accounting";
+import { requireRole } from "@/lib/api-helpers";
 import { hashPassword, signSessionToken, verifyPassword, verifySessionToken } from "@/lib/auth";
+import { verifySessionTokenEdge } from "@/lib/auth-edge";
 import { buildSampleScannedBill, computeUpdatedSupplierBalance } from "@/lib/bill-helpers";
 import { buildWeeklyCashFlowReport } from "@/lib/cashflow-ledger";
 import { MemoryJsonAdapter } from "@/lib/db/memory-json-adapter";
 import { buildWeeklyCashFlowPdfDoc } from "@/lib/pdf/weekly-cashflow-ledger";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { sanitizePlainText } from "@/lib/sanitize";
+import {
+  cashFlowReportSchema,
+  createItemSchema,
+  deleteCategorySchema,
+  loginSchema,
+  saleDispatchSchema,
+} from "@/lib/validation";
 
 describe("AliEMS Multi-Tenant Isolation, Onboarding, CRUD & Accounting", () => {
   it("provisions dynamic categories based on business type and isolates tenant partitions", async () => {
@@ -596,5 +607,181 @@ describe("AliEMS Multi-Tenant Isolation, Onboarding, CRUD & Accounting", () => {
     expect(blankReport.blankRows).toBe(10);
     const blankPdf = buildWeeklyCashFlowPdfDoc(blankReport);
     expect(blankPdf.getNumberOfPages()).toBe(1);
+  });
+});
+
+describe("Security Hardening: Bcrypt, Edge JWT, RBAC, Zod Validation, XSS & Rate Limiting", () => {
+  it(
+    "hashes passwords with bcrypt cost >= 12 and verifies tokens cleanly on Node and Edge",
+    async () => {
+      const hash = hashPassword("StrongPass!2026");
+      expect(hash.startsWith("$2a$12$") || hash.startsWith("$2b$12$")).toBe(true);
+      expect(verifyPassword("StrongPass!2026", hash)).toBe(true);
+      expect(verifyPassword("wrong-pass", hash)).toBe(false);
+
+      const token = signSessionToken({
+        userId: "usr_sec_1",
+        tenantId: "ten_sec_1",
+        email: "owner@aliems.local",
+        role: "owner",
+      });
+
+      const nodeSession = verifySessionToken(token);
+      expect(nodeSession?.userId).toBe("usr_sec_1");
+      expect(nodeSession?.role).toBe("owner");
+
+      const edgeSession = await verifySessionTokenEdge(token);
+      expect(edgeSession?.tenantId).toBe("ten_sec_1");
+      expect(edgeSession?.role).toBe("owner");
+
+      expect(await verifySessionTokenEdge(`${token}tampered`)).toBeNull();
+    },
+    15000,
+  );
+
+  it("enforces strict RBAC for owner-only vs operator roles", () => {
+    const operatorDenied = requireRole(
+      {
+        userId: "u1",
+        tenantId: "t1",
+        email: "op@aliems.local",
+        role: "operator",
+        exp: Date.now() + 60_000,
+      },
+      ["owner"],
+    );
+    expect(operatorDenied?.status).toBe(403);
+
+    const ownerAllowed = requireRole(
+      {
+        userId: "u2",
+        tenantId: "t1",
+        email: "owner@aliems.local",
+        role: "owner",
+        exp: Date.now() + 60_000,
+      },
+      ["owner"],
+    );
+    expect(ownerAllowed).toBeNull();
+  });
+
+  it("rejects NoSQL operator payloads and strips XSS HTML tags in Zod schemas", () => {
+    const nosqlLogin = loginSchema.safeParse({
+      email: { $ne: "" },
+      password: { $gt: "" },
+    });
+    expect(nosqlLogin.success).toBe(false);
+
+    const extraFieldItem = createItemSchema.safeParse({
+      name: "LED Panel <script>alert(1)</script>",
+      sku: "AE-<b>55</b>",
+      categoryId: "cat_1",
+      qtyOnHand: 5,
+      unitCostPrice: 50000,
+      role: "owner",
+    });
+    expect(extraFieldItem.success).toBe(false);
+
+    const cleanItem = createItemSchema.safeParse({
+      name: "Inverter AC <script>alert(1)</script>",
+      sku: "AE-18",
+      categoryId: "cat_1",
+      qtyOnHand: 4,
+      unitCostPrice: 110000,
+    });
+    expect(cleanItem.success).toBe(true);
+    if (cleanItem.success) {
+      expect(cleanItem.data.name).toBe("Inverter AC alert(1)");
+      expect(cleanItem.data.name).not.toContain("<script>");
+    }
+
+    const cleanSale = saleDispatchSchema.safeParse({
+      itemId: "itm_1",
+      quantity: 1,
+      unitSalePrice: 125000,
+      customerName: "<img src=x onerror=alert(1)>Ali",
+    });
+    expect(cleanSale.success).toBe(true);
+    if (cleanSale.success) {
+      expect(cleanSale.data.customerName).toBe("Ali");
+    }
+
+    expect(sanitizePlainText("<b>Safe</b> Text\u0000")).toBe("Safe Text");
+  });
+
+  it("blocks abusive requests once IP rate limit window is exhausted", () => {
+    const key = `test-rl-${Date.now()}`;
+    for (let i = 0; i < 5; i++) {
+      expect(checkRateLimit({ key, limit: 5, windowMs: 60_000 }).allowed).toBe(true);
+    }
+    const blocked = checkRateLimit({ key, limit: 5, windowMs: 60_000 });
+    expect(blocked.allowed).toBe(false);
+    expect(blocked.remaining).toBe(0);
+    expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
+  });
+
+  it("enforces full 128-bit UUID resource IDs, cross-tenant IDOR isolation, and strict JSON report/delete schemas", async () => {
+    const db = new MemoryJsonAdapter();
+    await db.ensureSeeded();
+
+    const tA = await db.registerTenant({
+      businessName: "Tenant A Corp",
+      businessType: "electronics",
+      currency: "PKR",
+      fullName: "Owner A",
+      email: `ownera_${Date.now()}@aliems.test`,
+      passwordHash: hashPassword("SecretPass!123"),
+      includeStarterStock: true,
+    });
+    const tB = await db.registerTenant({
+      businessName: "Tenant B Corp",
+      businessType: "mobile",
+      currency: "PKR",
+      fullName: "Owner B",
+      email: `ownerb_${Date.now()}@aliems.test`,
+      passwordHash: hashPassword("SecretPass!456"),
+      includeStarterStock: true,
+    });
+
+    // Opaque 128-bit UUID resource identifiers (prefix + 32 hex chars)
+    expect(tA.tenant.id).toMatch(/^ten_[a-f0-9]{32}$/);
+    expect(tA.user.id).toMatch(/^usr_[a-f0-9]{32}$/);
+
+    const overviewB = await db.getTenantOverview(tB.tenant.id, tB.user.id);
+    const victimItem = overviewB!.items[0];
+    expect(victimItem).toBeDefined();
+
+    // Cross-tenant IDOR attempts from Tenant A against Tenant B's item must fail
+    await expect(
+      db.updateInventoryItem({
+        tenantId: tA.tenant.id,
+        userId: tA.user.id,
+        itemId: victimItem.id,
+        name: "Tampered Cross-Tenant Item",
+      }),
+    ).rejects.toThrow(/not found/i);
+
+    await expect(
+      db.deleteInventoryItem(tA.tenant.id, tA.user.id, victimItem.id),
+    ).rejects.toThrow(/not found/i);
+
+    // Body-only schemas reject unexpected query-tampering fields
+    expect(deleteCategorySchema.safeParse({ categoryId: "cat_abc123", extra: true }).success).toBe(
+      false,
+    );
+    expect(
+      deleteCategorySchema.safeParse({ categoryId: "cat_abc123;DROP TABLE" }).success,
+    ).toBe(false);
+    expect(deleteCategorySchema.safeParse({ categoryId: "cat_abc123" }).success).toBe(true);
+
+    const parsedReport = cashFlowReportSchema.safeParse({
+      supplier: "<b>Umar Traders</b>",
+      periodType: "weekly",
+      blankRows: 8,
+    });
+    expect(parsedReport.success).toBe(true);
+    if (parsedReport.success) {
+      expect(parsedReport.data.supplier).toBe("Umar Traders");
+    }
   });
 });

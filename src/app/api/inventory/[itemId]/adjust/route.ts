@@ -1,39 +1,58 @@
 import { NextResponse } from "next/server";
-import { jsonError, requireApiSession } from "@/lib/api-helpers";
+import { jsonError, requireApiSession, safeApiError } from "@/lib/api-helpers";
 import { getDb } from "@/lib/db";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
+import { adjustStockSchema, formatZodError, itemIdSchema } from "@/lib/validation";
 
 export async function POST(
   request: Request,
   context: { params: Promise<{ itemId: string }> },
 ) {
+  const limited = enforceApiRateLimit(request, "inventory:adjust");
+  if (limited) return limited;
+
+  if (new URL(request.url).search) {
+    return jsonError("Query parameters are not permitted on state-changing requests.", 400);
+  }
+
   const { session, error } = await requireApiSession();
   if (error) return error;
 
   try {
     const { itemId } = await context.params;
-    const body = (await request.json()) as {
-      qtyDelta?: number;
-      reference?: string;
-      notes?: string;
-    };
+    const validId = itemIdSchema.safeParse(itemId);
+    if (!validId.success) {
+      return jsonError("Invalid inventory item ID.", 400);
+    }
+
+    const rawBody = await request.json();
+    const parsed = adjustStockSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonError(formatZodError(parsed.error), 400);
+    }
 
     const db = await getDb();
     const result = await db.adjustInventoryStock({
       tenantId: session.tenantId,
       userId: session.userId,
-      itemId,
-      qtyDelta: Number(body.qtyDelta ?? 0),
-      reference: body.reference,
-      notes: body.notes || "Manual stock audit adjustment",
+      itemId: validId.data,
+      qtyDelta: parsed.data.qtyDelta,
+      reference: parsed.data.reference,
+      notes: parsed.data.notes || "Manual stock audit adjustment",
     });
 
     const overview = await db.getTenantOverview(session.tenantId, session.userId);
-    return NextResponse.json({ item: result.item, ledgerEntry: result.ledgerEntry, overview });
+    return NextResponse.json({
+      item: result.item,
+      ledgerEntry: result.ledgerEntry,
+      overview,
+    });
   } catch (err) {
-    return jsonError(
-      err instanceof Error ? err.message : "Failed to adjust stock.",
+    return safeApiError(
+      err,
+      "Failed to adjust stock.",
       400,
+      "POST /api/inventory/[itemId]/adjust",
     );
   }
 }
-

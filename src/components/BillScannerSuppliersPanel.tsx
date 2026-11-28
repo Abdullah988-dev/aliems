@@ -444,7 +444,7 @@ export function BillScannerSuppliersPanel({
                 handleFilePicked(dropped);
               }}
               className={`glass-subpanel flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-4 text-center transition-colors sm:p-5 ${
-                dragActive ? "border-[#0f4c5c]" : ""
+                dragActive ? "neu-dropzone-active" : ""
               }`}
             >
               <input

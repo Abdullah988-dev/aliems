@@ -40,7 +40,7 @@ import type {
 } from "@/types/domain";
 
 function newId(prefix: string): string {
-  return `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+  return `${prefix}_${crypto.randomUUID().replace(/-/g, "")}`;
 }
 
 function generateUniqueSku(
@@ -122,11 +122,14 @@ export class MongoAdapter implements DatabaseAdapter {
       globalThis.__aliemsMongoClientUri !== this.uri
     ) {
       globalThis.__aliemsMongoIndexesEnsured = false;
+      const isSrv = this.uri.startsWith("mongodb+srv://");
+      const hasTlsFlag = /[?&](tls|ssl)=true/i.test(this.uri);
       const client = new MongoClient(this.uri, {
         maxPoolSize: 10,
         minPoolSize: 1,
         serverSelectionTimeoutMS: 8000,
         connectTimeoutMS: 8000,
+        ...(isSrv || hasTlsFlag ? { tls: true } : {}),
       });
 
       globalThis.__aliemsMongoClientUri = this.uri;
@@ -209,9 +212,10 @@ export class MongoAdapter implements DatabaseAdapter {
 
   async findUserByEmail(email: string): Promise<User | null> {
     const db = await this.getDb();
+    const safeEmail = String(email).trim().toLowerCase();
     const doc = await db
       .collection<User>("users")
-      .findOne({ email: email.trim().toLowerCase() }, { projection: { _id: 0 } });
+      .findOne({ email: safeEmail }, { projection: { _id: 0 } });
     return doc ?? null;
   }
 
@@ -219,7 +223,10 @@ export class MongoAdapter implements DatabaseAdapter {
     const db = await this.getDb();
     const doc = await db
       .collection<User>("users")
-      .findOne({ tenantId, id: userId }, { projection: { _id: 0 } });
+      .findOne(
+        { tenantId: String(tenantId), id: String(userId) },
+        { projection: { _id: 0, passwordHash: 0 } },
+      );
     return doc ?? null;
   }
 
@@ -227,7 +234,7 @@ export class MongoAdapter implements DatabaseAdapter {
     const db = await this.getDb();
     const doc = await db
       .collection<Tenant>("tenants")
-      .findOne({ id: tenantId }, { projection: { _id: 0 } });
+      .findOne({ id: String(tenantId) }, { projection: { _id: 0 } });
     return doc ?? null;
   }
 
@@ -241,7 +248,10 @@ export class MongoAdapter implements DatabaseAdapter {
     for (const t of tenants) {
       const owner = await db
         .collection<User>("users")
-        .findOne({ tenantId: t.id, role: "owner" }, { projection: { _id: 0 } });
+        .findOne(
+          { tenantId: t.id, role: "owner" },
+          { projection: { _id: 0, passwordHash: 0 } },
+        );
       if (owner) {
         out.push({
           tenantId: t.id,

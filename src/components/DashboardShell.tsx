@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Boxes,
+  CheckCircle2,
   Database,
   LayoutDashboard,
   LogOut,
@@ -19,26 +20,37 @@ import { LedgerSettlementPanel } from "@/components/LedgerSettlementPanel";
 import { SaleDispatchPanel } from "@/components/SaleDispatchPanel";
 import { ThemeToggle } from "@/components/ThemeProvider";
 import { WorkspaceSettings } from "@/components/WorkspaceSettings";
+import { consumeFlashToast, type FlashToastPayload } from "@/lib/flash-toast";
 import { formatCurrency, formatDateTime, formatSignedCurrency } from "@/lib/format";
 import { BUSINESS_PRESETS } from "@/lib/presets";
 import type { TenantOverview } from "@/types/domain";
 
+export type DashboardTab = "overview" | "inventory" | "ledger" | "bills" | "workspace";
+
 interface DashboardShellProps {
   overview: TenantOverview;
+  initialTab?: DashboardTab;
   onOverviewUpdate: (overview: TenantOverview) => void;
   onLoggedOut: () => void;
 }
 
-type ActiveTab = "overview" | "inventory" | "ledger" | "bills" | "workspace";
-
 export function DashboardShell({
   overview,
+  initialTab = "overview",
   onOverviewUpdate,
   onLoggedOut,
 }: DashboardShellProps) {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
+  const [flashToast, setFlashToastState] = useState<FlashToastPayload | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    const consumed = consumeFlashToast();
+    if (consumed) {
+      setFlashToastState(consumed);
+    }
+  }, []);
 
   const {
     tenant,
@@ -265,7 +277,7 @@ export function DashboardShell({
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={`tabular-nums inline-flex h-9 min-h-[36px] shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-xs font-medium transition-colors ${
-                  active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
+                  active ? "neu-pill-active" : "neu-btn text-ink-secondary"
                 }`}
               >
                 <Icon
@@ -363,7 +375,7 @@ export function DashboardShell({
                   setMobileMenuOpen(false);
                 }}
                 className={`tabular-nums flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3.5 text-left text-sm font-medium transition-colors ${
-                  active ? "neu-btn-primary" : "neu-btn text-ink-secondary"
+                  active ? "neu-pill-active" : "neu-btn text-ink-secondary"
                 }`}
               >
                 <Icon
@@ -395,6 +407,28 @@ export function DashboardShell({
       </aside>
 
       <main className="mx-auto max-w-7xl space-y-6 px-3 py-4 sm:px-6 sm:py-6">
+        {flashToast ? (
+          <div
+            role="status"
+            className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-xs font-medium ${
+              flashToast.kind === "error" ? "alert-danger" : "alert-success"
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              {flashToast.message}
+            </span>
+            <button
+              type="button"
+              onClick={() => setFlashToastState(null)}
+              aria-label="Dismiss notification"
+              className="rounded-md p-1 opacity-75 hover:opacity-100"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : null}
+
         {/* Core Dual-Balance KPI Strip */}
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="glass-card min-w-0 rounded-xl p-5">

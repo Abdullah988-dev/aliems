@@ -1,32 +1,38 @@
 import { NextResponse } from "next/server";
-import { jsonError, requireApiSession } from "@/lib/api-helpers";
+import { jsonError, requireApiSession, safeApiError } from "@/lib/api-helpers";
 import { getDb } from "@/lib/db";
-import type { WeeklySettlement } from "@/types/domain";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
+import { formatZodError, settlementSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  const limited = enforceApiRateLimit(request, "settlements:post");
+  if (limited) return limited;
+
+  if (new URL(request.url).search) {
+    return jsonError("Query parameters are not permitted on state-changing requests.", 400);
+  }
+
   const { session, error } = await requireApiSession();
   if (error) return error;
 
   try {
-    const body = (await request.json()) as {
-      settledAmount?: number;
-      weekLabel?: string;
-      recipientName?: string;
-      settlementMethod?: WeeklySettlement["settlementMethod"];
-      reference?: string;
-      notes?: string;
-    };
+    const rawBody = await request.json();
+    const parsed = settlementSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonError(formatZodError(parsed.error), 400);
+    }
 
+    const data = parsed.data;
     const db = await getDb();
     const result = await db.recordWeeklySettlement({
       tenantId: session.tenantId,
       userId: session.userId,
-      settledAmount: Number(body.settledAmount ?? 0),
-      weekLabel: body.weekLabel,
-      recipientName: body.recipientName,
-      settlementMethod: body.settlementMethod || "bank_transfer",
-      reference: body.reference,
-      notes: body.notes,
+      settledAmount: data.settledAmount,
+      weekLabel: data.weekLabel,
+      recipientName: data.recipientName,
+      settlementMethod: data.settlementMethod,
+      reference: data.reference,
+      notes: data.notes,
     });
 
     const overview = await db.getTenantOverview(session.tenantId, session.userId);
@@ -39,9 +45,11 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (err) {
-    return jsonError(
-      err instanceof Error ? err.message : "Failed to record weekly settlement.",
+    return safeApiError(
+      err,
+      "Failed to record weekly settlement.",
       400,
+      "POST /api/settlements",
     );
   }
 }

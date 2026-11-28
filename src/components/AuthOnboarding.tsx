@@ -26,6 +26,7 @@ interface DemoTenantSummary {
 interface AuthOnboardingProps {
   storageMode: "mongodb" | "fallback";
   demoTenants: DemoTenantSummary[];
+  initialMode?: "login" | "register";
   onAuthenticated: (overview: TenantOverview) => void;
 }
 
@@ -39,9 +40,10 @@ const BUSINESS_TYPE_ICONS: Record<BusinessType, typeof Cpu> = {
 export function AuthOnboarding({
   storageMode,
   demoTenants,
+  initialMode = "login",
   onAuthenticated,
 }: AuthOnboardingProps) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -312,7 +314,7 @@ export function AuthOnboarding({
                 }}
                 className={`min-h-[44px] rounded-xl px-3 text-xs font-medium transition-all sm:h-10 sm:min-h-[40px] sm:text-sm ${
                   mode === "login"
-                    ? "neu-btn-primary"
+                    ? "neu-pill-active"
                     : "neu-btn text-ink-secondary"
                 }`}
               >
@@ -326,7 +328,7 @@ export function AuthOnboarding({
                 }}
                 className={`min-h-[44px] rounded-xl px-3 text-xs font-medium transition-all sm:h-10 sm:min-h-[40px] sm:text-sm ${
                   mode === "register"
-                    ? "neu-btn-primary"
+                    ? "neu-pill-active"
                     : "neu-btn text-ink-secondary"
                 }`}
               >
@@ -426,29 +428,18 @@ export function AuthOnboarding({
                           <button
                             key={type}
                             type="button"
+                            aria-pressed={active}
                             onClick={() => setBusinessType(type)}
-                            className={`flex min-h-[48px] items-start gap-2.5 rounded-xl p-3 text-left transition-all ${
-                              active ? "neu-btn-primary" : "neu-btn"
+                            className={`neu-card-option flex min-h-[48px] items-start gap-2.5 rounded-xl p-3 text-left transition-all ${
+                              active ? "neu-card-selected" : ""
                             }`}
                           >
-                            <Icon
-                              className={`mt-0.5 h-4 w-4 shrink-0 ${
-                                active ? "text-white" : "text-accent"
-                              }`}
-                            />
+                            <Icon className="neu-card-icon mt-0.5 h-4 w-4 shrink-0" />
                             <div className="min-w-0">
-                              <div
-                                className={`text-xs font-semibold ${
-                                  active ? "text-white" : "text-ink"
-                                }`}
-                              >
+                              <div className="neu-card-title text-xs font-semibold">
                                 {preset.label}
                               </div>
-                              <div
-                                className={`mt-0.5 text-[11px] leading-snug ${
-                                  active ? "text-white/85" : "text-ink-secondary"
-                                }`}
-                              >
+                              <div className="neu-card-desc mt-0.5 text-[11px] leading-snug">
                                 {preset.tagline}
                               </div>
                             </div>
@@ -513,7 +504,7 @@ export function AuthOnboarding({
                           type="checkbox"
                           checked={includeStarterStock}
                           onChange={(e) => setIncludeStarterStock(e.target.checked)}
-                          className="h-4 w-4 shrink-0 accent-[#0f4c5c]"
+                          className="neu-checkbox h-4 w-4 shrink-0"
                         />
                         <span>
                           Pre-populate {selectedPreset.starterItems.length} starter stock

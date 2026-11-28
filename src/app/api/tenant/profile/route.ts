@@ -1,38 +1,49 @@
 import { NextResponse } from "next/server";
-import { jsonError, requireApiSession } from "@/lib/api-helpers";
+import { jsonError, requireApiSession, requireRole, safeApiError } from "@/lib/api-helpers";
 import { getDb } from "@/lib/db";
-import type { BusinessType } from "@/types/domain";
+import { enforceApiRateLimit } from "@/lib/rate-limit";
+import { formatZodError, updateTenantProfileSchema } from "@/lib/validation";
 
 export async function PATCH(request: Request) {
+  const limited = enforceApiRateLimit(request, "tenant-profile:patch");
+  if (limited) return limited;
+
+  if (new URL(request.url).search) {
+    return jsonError("Query parameters are not permitted on state-changing requests.", 400);
+  }
+
   const { session, error } = await requireApiSession();
   if (error) return error;
 
-  try {
-    const body = (await request.json()) as {
-      businessName?: string;
-      businessType?: BusinessType;
-      customBusinessLabel?: string;
-      currency?: string;
-      provisionPresetCategories?: boolean;
-    };
+  const roleErr = requireRole(session, ["owner"]);
+  if (roleErr) return roleErr;
 
+  try {
+    const rawBody = await request.json();
+    const parsed = updateTenantProfileSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonError(formatZodError(parsed.error), 400);
+    }
+
+    const data = parsed.data;
     const db = await getDb();
     await db.updateTenantProfile({
       tenantId: session.tenantId,
-      businessName: body.businessName,
-      businessType: body.businessType,
-      customBusinessLabel: body.customBusinessLabel,
-      currency: body.currency,
-      provisionPresetCategories: Boolean(body.provisionPresetCategories),
+      businessName: data.businessName,
+      businessType: data.businessType,
+      customBusinessLabel: data.customBusinessLabel,
+      currency: data.currency,
+      provisionPresetCategories: Boolean(data.provisionPresetCategories),
     });
 
     const overview = await db.getTenantOverview(session.tenantId, session.userId);
     return NextResponse.json({ overview });
   } catch (err) {
-    return jsonError(
-      err instanceof Error ? err.message : "Failed to update business profile.",
+    return safeApiError(
+      err,
+      "Failed to update business profile.",
       400,
+      "PATCH /api/tenant/profile",
     );
   }
 }
-

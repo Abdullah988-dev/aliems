@@ -173,6 +173,7 @@ export interface SessionPayload {
   userId: string;
   tenantId: string;
   email: string;
+  role: "owner" | "operator";
   exp: number;
 }
 
